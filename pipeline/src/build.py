@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """The pipeline driver. ``make pipeline`` runs this.
 
 Order matters: fetch -> load -> assert alignment -> measure -> validate -> export.
@@ -10,7 +11,7 @@ from __future__ import annotations
 import sys
 from functools import lru_cache
 
-from . import corpora, export, measure, metadata
+from . import corpora, export, measure, metadata, provenance
 from . import tokenizers_registry as tr
 from .config import ENGLISH
 
@@ -79,8 +80,13 @@ def main() -> int:
     for name, rows in corpus_texts.items():
         print(f"{name}: {len(rows)} languages x {len(rows[ENGLISH])} rows")
 
+    # Verify every recorded source still is what it claims before exporting
+    # anything derived from it.
+    print(f"provenance: {len(provenance.load())} sources, "
+          f"{len(provenance.substitutions())} substituted")
+
     res = results()
-    written = export.write_all(res, corpus_texts["flores"])
+    written = export.write_all(res, corpus_texts["flores"], corpus_texts)
     print()
     for name, size in written.items():
         print(f"wrote web/public/data/{name}  {size / 1024:.0f} KB")

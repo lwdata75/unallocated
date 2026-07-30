@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Write the pre-aggregated JSON the site is built on.
 
 Everything is aggregated here so the browser never tokenises on first paint and
@@ -17,7 +18,7 @@ from __future__ import annotations
 import json
 from datetime import date
 
-from . import metadata
+from . import headline, metadata, provenance
 from . import tokenizers_registry as tr
 from .config import ENGLISH, WEB_DATA_DIR
 
@@ -160,15 +161,20 @@ def build_samples(flores: dict[str, list[str]], generated: str) -> dict:
     }
 
 
-def write_all(results, flores: dict[str, list[str]]) -> dict[str, int]:
+def write_all(results, flores: dict[str, list[str]], texts=None) -> dict[str, int]:
     generated = date.today().isoformat()
     WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    written = {}
-    for name, payload in (
+    payloads = [
         ("languages.json", build_languages(results, generated)),
         ("samples.json", build_samples(flores, generated)),
-    ):
+        ("sources.json", provenance.as_json()),
+    ]
+    if texts is not None:
+        payloads.append(("headline.json", headline.build_payload(results, texts)))
+
+    written = {}
+    for name, payload in payloads:
         path = WEB_DATA_DIR / name
         path.write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
