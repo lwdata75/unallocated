@@ -129,14 +129,27 @@ reproduce this. Two further independent re-uploads
 (`unsloth/llama-3-8b`, `princeton-nlp/Llama-3-Base-8B-SFT`) agree on vocabulary
 size and on token ids for all 32 probes.
 
-**Gemma has no such anchor.** It is a SentencePiece vocabulary with no shared
-base against which to check it independently. Three independent re-uploads
-(`unsloth/gemma-2-2b`, `unsloth/gemma-2-9b-it`,
-`philschmid/gemma-tokenizer-chatml`) agree exactly on vocabulary size and probe
-token ids. That is strong corroboration, not proof. **Closing this properly
-requires accepting the Gemma terms on huggingface.co and re-running
-`uv run python -m src.refresh_sources`**, which will compare against the
-canonical repository and fail if they differ.
+**Gemma has been compared against canonical, and matches exactly.** The Gemma
+terms were accepted on 2026-07-30, `google/gemma-2-2b` became reachable, and the
+comparison ran: identical vocabulary size, identical behaviour hash, identical
+token ids for all 32 probes, and in this case a byte-identical `tokenizer.json`.
+All 256,000 vocabulary entries match. `unsloth/gemma-2-2b` is a faithful copy.
+
+The mirror is nonetheless kept as the resolved source, because it is ungated and
+therefore reproducible for anyone cloning this repository without a Google
+licence acceptance. Both hashes are recorded in `sources.toml`
+(`canonical_sha256` alongside `behaviour_sha256`), so the equivalence is
+checkable rather than asserted.
+
+**Llama-3's canonical comparison is still pending.**
+`meta-llama/Meta-Llama-3-8B` is `gated: manual` and remains under review, so its
+row records `canonical_check = "pending"` and a gate asserts that the evidence
+string says so in words. The tiktoken anchor above is strong — a fabricated
+tokenizer could not reproduce 100,256 `cl100k` ids at identical positions — but
+"anchored against a first-party invariant" and "compared against the canonical
+file" are different claims, and this project does not blur them. Once Meta
+approves access, `uv run python -m src.refresh_sources` closes it and fails
+loudly if the files disagree.
 
 ### What equivalence means for a tokenizer
 

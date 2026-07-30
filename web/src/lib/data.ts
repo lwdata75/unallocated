@@ -107,12 +107,32 @@ async function getJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/**
+ * languages.json and samples.json are load-bearing — without them there is no
+ * study to show. headline.json and sources.json feed the methodology prose
+ * only, so a stale deploy that is missing them should cost the reader the
+ * methodology section, not the entire page. Observed in the wild: a deploy
+ * predating those two files 404'd them and would have taken the hero down with
+ * it.
+ */
+async function getOptionalJson<T>(url: string, fallback: T): Promise<T> {
+  try {
+    return await getJson<T>(url);
+  } catch (err) {
+    console.error(`[data] ${url} unavailable, degrading:`, err);
+    return fallback;
+  }
+}
+
+const EMPTY_HEADLINE: HeadlineFile = { generated: "", note: "", figures: {} };
+const EMPTY_SOURCES: SourcesFile = { generated: "", note: "", sources: [] };
+
 export async function loadDataset(): Promise<Dataset> {
   const [languages, samples, headline, sources] = await Promise.all([
     getJson<LanguagesFile>("data/languages.json"),
     getJson<SamplesFile>("data/samples.json"),
-    getJson<HeadlineFile>("data/headline.json"),
-    getJson<SourcesFile>("data/sources.json"),
+    getOptionalJson<HeadlineFile>("data/headline.json", EMPTY_HEADLINE),
+    getOptionalJson<SourcesFile>("data/sources.json", EMPTY_SOURCES),
   ]);
   const byCode = new Map(languages.languages.map((l) => [l.code, l]));
   return { languages, samples, headline, sources, byCode };

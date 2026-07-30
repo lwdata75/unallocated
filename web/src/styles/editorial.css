@@ -48,6 +48,14 @@
 }
 .fig-missing { color: var(--ramp-5_0); border-bottom-style: solid; }
 
+/* Shown when a stale deploy is missing the generated figures or the provenance
+   record. Loud enough to be noticed, not styled as an error page. */
+.degraded {
+  margin-bottom: var(--s-5);
+  border-left: 3px solid var(--ramp-3_0);
+  font-size: var(--t-15);
+}
+
 .sources { display: grid; gap: var(--s-3); }
 .sources code {
   font-family: var(--data);

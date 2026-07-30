@@ -4,6 +4,8 @@
 
 What tokenizer vocabularies were spent on, and what they weren't.
 
+**[unallocated.netlify.app](https://unallocated.netlify.app/)**
+
 A data study measuring how many tokens the same meaning costs in 204 languages
 across eight tokenizer families. Static site, pre-aggregated JSON, no backend.
 

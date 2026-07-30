@@ -160,6 +160,64 @@ def _tokenizer_identity(spec_ref: str, token: str | None):
     )
 
 
+def _compare_with_canonical(key: str, canonical: str, row: dict, token: str | None):
+    """Fetch the gated canonical source and compare, if access has been granted.
+
+    Returns ``(status, sha256, note)``. When the canonical repo is still gated
+    this reports ``pending`` rather than silently leaving the row looking
+    verified — the difference between "checked" and "not checked yet" is exactly
+    what a reviewer is here for.
+    """
+    import urllib.error
+
+    from huggingface_hub import hf_hub_download
+    from huggingface_hub.utils import GatedRepoError, HfHubHTTPError
+    from tokenizers import Tokenizer
+
+    try:
+        path = hf_hub_download(repo_id=canonical, filename="tokenizer.json", token=token)
+    except (GatedRepoError, HfHubHTTPError, urllib.error.HTTPError, OSError) as err:
+        return "pending", "", (
+            f"Canonical comparison pending: {canonical} is still gated for this "
+            f"account ({type(err).__name__}). Accept the licence upstream and "
+            f"re-run `uv run python -m src.refresh_sources` to close it."
+        )
+
+    data = Path(path).read_bytes()
+    raw = json.loads(data.decode("utf-8"))
+    tok = Tokenizer.from_file(path)
+    canon = {
+        "behaviour": behaviour_hash(raw),
+        "probes": probe_hash(lambda s: tok.encode(s, add_special_tokens=False).ids),
+        "vocab": tok.get_vocab_size(),
+    }
+    mismatches = [
+        name for name, value, expected in (
+            ("vocabulary size", canon["vocab"], row["vocab_size"]),
+            ("behaviour hash", canon["behaviour"], row["behaviour_sha256"]),
+            ("probe token ids", canon["probes"], row["probe_sha256"]),
+        ) if value != expected
+    ]
+    if mismatches:
+        raise provenance.ProvenanceError(
+            f"{key}: the substitute DISAGREES with canonical {canonical} on "
+            f"{', '.join(mismatches)}. Every exported number measured with this "
+            f"tokenizer is wrong and the pipeline must be re-run against the "
+            f"canonical source before anything else happens."
+        )
+
+    digest = provenance.sha256_bytes(data)
+    identical_bytes = digest == provenance.sha256_file(
+        Path(hf_hub_download(repo_id=row["resolved"], filename="tokenizer.json", token=token))
+    )
+    return date.today().isoformat(), digest, (
+        f"Canonical comparison PASSED against {canonical} on "
+        f"{date.today().isoformat()}: identical vocabulary size, behaviour hash "
+        f"and token ids for all {len(provenance.PROBES)} probes"
+        + (", and byte-identical tokenizer.json." if identical_bytes else ".")
+    )
+
+
 def _llama3_anchor() -> str:
     """Check the Llama-3 mirror against a first-party, ungated source.
 
@@ -281,23 +339,35 @@ def main() -> int:
                     "Independent re-uploads agree on vocabulary size and on token ids "
                     f"for all {len(provenance.PROBES)} probes: " + ", ".join(agree) + "."
                 )
-            evidence.append(
-                "Canonical comparison still pending: the gated source requires a "
-                "licence acceptance this build cannot perform."
+            status, digest, note = _compare_with_canonical(
+                key, row["canonical"], row, token
             )
+            row["canonical_check"] = status
+            row["canonical_sha256"] = digest
+            evidence.append(note)
             row["verified_against"] = " ".join(evidence)
+        else:
+            row["canonical_check"] = "n/a — canonical source used directly"
+            row["canonical_sha256"] = ""
 
         row["retrieved"] = date.today().isoformat()
         ordered = {
             k: row[k] for k in (
                 "canonical", "resolved", "revision", "licence", "spdx", "retrieved",
-                "substituted", "reason", "verified_against", "behaviour_sha256",
-                "probe_sha256", "vocab_size", "notes",
+                "substituted", "reason", "verified_against", "canonical_check",
+                "canonical_sha256", "behaviour_sha256", "probe_sha256",
+                "vocab_size", "notes",
             )
         }
         blocks.append(_emit("tokenizer", key, ordered))
-        print(f"tokenizer  {key:12s} vocab={row['vocab_size']:6d} "
-              f"{'SUBSTITUTED' if row['substituted'] else 'canonical'}")
+        status = "canonical"
+        if row["substituted"]:
+            status = (
+                "SUBSTITUTED, canonical verified"
+                if row["canonical_check"] not in ("", "pending")
+                else "SUBSTITUTED, canonical PENDING"
+            )
+        print(f"tokenizer  {key:12s} vocab={row['vocab_size']:6d} {status}")
 
     # ------------------------------------------------------------------ fonts
     if FONT_MANIFEST.exists():

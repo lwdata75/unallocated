@@ -39,6 +39,20 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
     (s) => !s.substituted && s.kind !== "font"
   );
 
+  // Degrade visibly rather than silently: a reader must not mistake a stale
+  // deploy for a study that never recorded its provenance.
+  const degraded =
+    Object.keys(figures).length === 0 || data.sources.sources.length === 0;
+  const degradedNotice = degraded
+    ? `<p class="panel degraded" role="status">
+         This page could not load its generated figures or provenance record, so
+         some numbers and the source table are missing below. That is a stale
+         deployment, not a study without provenance — the full record is in
+         <a href="https://github.com/lwdata75/unallocated/blob/main/METHODOLOGY.md">METHODOLOGY.md</a>
+         and <code>pipeline/sources.toml</code>.
+       </p>`
+    : "";
+
   root.innerHTML = `
     <div class="editorial">
       <div class="section-head">
@@ -48,6 +62,8 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
           data. Hover any figure to see the statistic and sample it refers to.
         </p>
       </div>
+
+      ${degradedNotice}
 
       <h3>The claim, in order</h3>
       <p>

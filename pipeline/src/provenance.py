@@ -103,6 +103,11 @@ class Source:
     vocab_size: int = 0
     verified_against: str = ""   # how the substitution was checked
     notes: str = ""
+    # Set once the canonical source has actually been fetched and compared.
+    # "pending" means the canonical repo is still gated and the row rests on
+    # corroboration rather than a direct comparison.
+    canonical_check: str = ""
+    canonical_sha256: str = ""
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -202,6 +207,8 @@ def as_json() -> dict:
                 "probe_sha256": s.probe_sha256,
                 "vocab_size": s.vocab_size,
                 "notes": s.notes,
+                "canonical_check": s.canonical_check,
+                "canonical_sha256": s.canonical_sha256,
             }
             for s in sorted(rows.values(), key=lambda r: (r.kind, r.key))
         ],

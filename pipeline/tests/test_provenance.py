@@ -105,6 +105,46 @@ def test_substitutions_are_flagged_and_justified(sources):
 
 
 @pytest.mark.gate
+def test_canonical_comparison_state_is_recorded_honestly(sources):
+    """A substitution must say whether the canonical source was actually
+    compared, or only corroborated.
+
+    "Verified against the canonical repo" and "three mirrors agree" are
+    different claims and must not blur into each other. Where the canonical
+    source is still gated the row says ``pending`` and the evidence string says
+    so in words.
+    """
+    for source in sources.values():
+        # Only meaningful for tokenizers: it records whether a gated canonical
+        # repository was actually fetched and compared. Corpora and fonts are
+        # taken from their first-party source directly.
+        if source.kind != "tokenizer":
+            continue
+        if not source.substituted:
+            assert source.canonical_check.startswith("n/a"), (
+                f"{source.key}: not substituted, so canonical_check should be n/a"
+            )
+            continue
+
+        assert source.canonical_check, f"{source.key}: no canonical_check recorded"
+        if source.canonical_check == "pending":
+            assert "pending" in source.verified_against.lower(), (
+                f"{source.key}: canonical check is pending but the evidence string "
+                "does not say so — a reader would think it had been verified"
+            )
+            assert not source.canonical_sha256
+        else:
+            assert source.canonical_sha256, (
+                f"{source.key}: claims a canonical comparison but records no hash "
+                "for what it compared against"
+            )
+            assert "PASSED" in source.verified_against, (
+                f"{source.key}: canonical_check is set but the evidence does not "
+                "record the result"
+            )
+
+
+@pytest.mark.gate
 def test_non_substituted_sources_really_are_canonical(sources):
     """Guards the mistake of quietly demoting a canonical source to a mirror."""
     for source in sources.values():
