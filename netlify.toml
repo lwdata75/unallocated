@@ -1,9 +1,17 @@
+# Everything here is relative to the repository root.
+#
+# `base` is deliberately NOT set. The site's UI has its base directory at "/",
+# and a `base` here would contradict it — which is exactly what broke every
+# deploy: the build ran at the repo root, where there is no package.json, and
+# failed with ENOENT before it reached Vite. Declaring the paths from the root
+# means the build works whatever the UI says, and needs no setting kept in sync
+# in two places.
 [build]
-  base = "web"
-  # Third-party assets whose licences do not permit committing them here are
-  # fetched at deploy time instead. See NOTICE.md.
-  command = "npm run assets && npm run build"
-  publish = "dist"
+  # `cd web` because the frontend is a subdirectory of a repo that also holds
+  # the Python pipeline. `npm run assets` fetches the third-party files whose
+  # licences do not permit committing them here — see NOTICE.md.
+  command = "cd web && npm run assets && npm run build"
+  publish = "web/dist"
 
 [build.environment]
   NODE_VERSION = "22"
