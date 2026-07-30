@@ -115,6 +115,54 @@ async function main() {
     process.stdout.write(`${ok ? "ok  " : "FAIL"} ${row.code.padEnd(10)} ${row.script ?? ""}\n`);
   }
 
+  // --- no English token may be clipped on sentence 1 / o200k ---------------
+  // The thesis is that in English one token is one word while elsewhere it is a
+  // fragment of a character. A tile that clips its own text counterfeits that,
+  // so a truncated English token is a broken argument, not a cosmetic issue.
+  const clipping = await page.evaluate(async () => {
+    const pick = (label) =>
+      [...document.querySelectorAll(".tok-btn")].find((b) => b.textContent.includes(label));
+    pick("OpenAI current").click();
+    await new Promise((r) => setTimeout(r, 500));
+    await document.fonts.ready;
+    await new Promise((r) => setTimeout(r, 200));
+
+    const out = [];
+    for (const code of ["eng_Latn", "fra_Latn"]) {
+      const tiles = document.querySelectorAll(`.column[data-code="${code}"] .tile`);
+      const bad = [];
+      for (const t of tiles) {
+        if (t.dataset.empty === "true") continue;
+        if (t.scrollWidth - t.clientWidth > 1) bad.push(t.textContent);
+      }
+      out.push({ code, total: tiles.length, truncated: bad });
+    }
+    return out;
+  });
+
+  for (const row of clipping) {
+    process.stdout.write(
+      `${row.truncated.length === 0 ? "ok  " : "FAIL"} ${row.code}: ` +
+        `${row.total} tiles, ${row.truncated.length} truncated ` +
+        `${row.truncated.length ? JSON.stringify(row.truncated) : ""}\n`
+    );
+    if (row.truncated.length) {
+      problems.push(
+        `${row.code} on sentence 1 / o200k has truncated tokens: ` +
+          `${JSON.stringify(row.truncated)} — a clipped token is indistinguishable ` +
+          `from a real BPE split, which breaks the argument the view exists to make`
+      );
+    }
+  }
+
+  // Whitespace tokens must be visible, not blank: a blank tile reads as a
+  // missing glyph when it is a space the tokenizer charged for.
+  const spaceTiles = await page.evaluate(
+    () => document.querySelectorAll('.column[data-code="eng_Latn"] .tile .ws').length
+  );
+  process.stdout.write(`${spaceTiles > 0 ? "ok  " : "FAIL"} whitespace tokens marked: ${spaceTiles}\n`);
+  if (spaceTiles === 0) problems.push("no whitespace tokens rendered visibly in the English column");
+
   // --- every showcase language actually tiled ------------------------------
   for (const code of SHOWCASE) {
     const count = await page.evaluate(async (c) => {
@@ -199,6 +247,56 @@ async function main() {
   const status = await page.textContent(".freetext-status");
   process.stdout.write(`free text: ${status}\n`);
   await page.locator(".freetext").screenshot({ path: path.join(OUT, "06-freetext.png") });
+
+  // --- scatter card: hover, pin, keyboard, escape ---------------------------
+  await page.evaluate(() => document.querySelector("#scatter").scrollIntoView());
+  await page.waitForTimeout(400);
+
+  const dot = await page.$(".dots circle");
+  await dot.hover();
+  await page.waitForTimeout(250);
+  const hoverShows = await page.evaluate(() => !document.querySelector(".lang-card").hidden);
+  if (!hoverShows) problems.push("scatter card does not open on hover");
+
+  await dot.click();
+  await page.waitForTimeout(200);
+  await page.mouse.move(700, 760);
+  await page.waitForTimeout(200);
+  const pinned = await page.evaluate(
+    () => document.querySelector(".lang-card").dataset.pinned === "true" &&
+          !document.querySelector(".lang-card").hidden
+  );
+  if (!pinned) problems.push("clicking a dot does not pin the card (needed for touch)");
+
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+  const escaped = await page.evaluate(() => document.querySelector(".lang-card").hidden);
+  if (!escaped) problems.push("Escape does not dismiss the pinned card");
+
+  // Keyboard: the cloud must be reachable and focusing a point must open the
+  // card, or the chart is hover-only and unusable without a mouse.
+  let tabs = 0;
+  for (let i = 0; i < 90; i += 1) {
+    await page.keyboard.press("Tab");
+    tabs += 1;
+    if (await page.evaluate(() => document.activeElement.tagName === "circle")) break;
+  }
+  await page.waitForTimeout(250);
+  const focusShows = await page.evaluate(
+    () => document.activeElement.tagName === "circle" &&
+          !document.querySelector(".lang-card").hidden
+  );
+  process.stdout.write(
+    `${focusShows ? "ok  " : "FAIL"} keyboard reaches a point in ${tabs} tabs and opens the card\n`
+  );
+  if (!focusShows) problems.push("focusing a scatter point by keyboard does not open the card");
+
+  const labels = await page.evaluate(
+    () => [...document.querySelectorAll(".point-label")].map((t) => t.textContent)
+  );
+  process.stdout.write(`labelled extremes: ${labels.join(", ")}\n`);
+  if (labels.length < 6) problems.push(`only ${labels.length} points labelled, expected 6-8`);
+  await page.keyboard.press("Escape");
 
   // --- dark mode and narrow layout -----------------------------------------
   await page.click('[data-role="theme"]');

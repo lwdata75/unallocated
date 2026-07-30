@@ -9,9 +9,9 @@
 .tile-strip {
   /* Full-bleed: cancels the field's left padding so columns pass under the
      rail's glass when the strip scrolls horizontally. */
-  margin-left: calc(-1 * (var(--rail-w) + var(--s-6)));
-  padding-left: calc(var(--rail-w) + var(--s-6));
-  padding-right: var(--s-6);
+  margin-left: calc(-1 * (var(--rail-w) + var(--s-5)));
+  padding-left: calc(var(--rail-w) + var(--s-5));
+  padding-right: var(--s-5);
   padding-bottom: var(--s-3);
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -21,37 +21,49 @@
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: var(--s-4);
+  gap: var(--s-3);
   min-width: min-content;
   padding-top: var(--s-2);
 }
 
-/* The parity line. Positioned by JS at the English column's tile-field height. */
+/* The parity line. Positioned by JS at the English column's tile-field height.
+   Faint, because it crosses the taller columns' tiles and must not read as a
+   strikethrough over them. */
 .parity-line {
   position: absolute;
   left: 0;
   right: 0;
   height: 0;
-  border-top: 1px dashed color-mix(in srgb, var(--ink) 38%, transparent);
+  border-top: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent);
   pointer-events: none;
   z-index: 2;
   transition: transform var(--dur-tile) var(--ease);
 }
-.parity-line::after {
-  content: attr(data-label);
+
+/* Anchored against the English column, which is what it measures. Floating it
+   off to the right left it hanging over empty space. */
+.parity-label {
   position: absolute;
-  right: 0;
-  top: 4px;
-  font-family: var(--data);
+  top: 3px;
+  white-space: nowrap;
   font-size: var(--t-12);
   color: var(--ink-2);
-  background: color-mix(in srgb, var(--field-0) 82%, transparent);
+  background: color-mix(in srgb, var(--field-0) 88%, transparent);
   padding: 0 var(--s-1);
+  border-radius: 2px;
+  transition: left var(--dur-tile) var(--ease);
 }
 
 .column {
-  flex: 0 0 auto;
-  width: 168px;
+  /* Grows to fill the field but never narrows past the width at which an
+     11-character token — the longest in the English and French sample
+     sentences — still fits whole in a three-column grid. A token clipped by its
+     cell would be indistinguishable from a genuine BPE split, which is the one
+     thing this view exists to show. Below that width the strip scrolls rather
+     than shrinking the cell. */
+  flex: 1 1 224px;
+  min-width: 224px;
+  max-width: 300px;
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
@@ -89,17 +101,17 @@
   margin-left: var(--s-1);
 }
 
-/* The ramp colour is carried by a swatch, not by the text background.
-   Mid-tones like sand and rust cannot reach 4.5:1 against either black or
-   white, so setting label text on them would fail the contrast floor at exactly
-   the values that matter most. The swatch encodes; the neutral surface keeps
-   the number readable. */
+/* No colour. The multiplier is written in the badge, so a swatch beside it
+   duplicated the channel — and on a sentence where the five languages sit
+   between 1.3x and 1.7x the diverging ramp collapsed to a single shade and
+   encoded nothing at all. Re-anchoring the ramp per sentence would be worse:
+   the same multiplier would take a different colour depending on which sentence
+   was displayed. One ramp, one anchoring, and it lives on the scatter. */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--s-2);
   align-self: flex-start;
-  padding: 1px var(--s-2) 1px var(--s-1);
+  padding: 1px var(--s-2);
   border-radius: 999px;
   border: 1px solid var(--edge);
   background: var(--field-1);
@@ -109,28 +121,37 @@
   line-height: 1.6;
   white-space: nowrap;
 }
-.badge::before {
-  content: "";
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--badge-swatch, transparent);
-  /* The outline is what makes the swatch a distinguishable UI component at
-     every ramp stop. The pale stops cannot clear 3:1 as a fill against a light
-     surface, and the dark stops cannot against a dark one. The value is always
-     written out beside it, so colour never carries information alone. */
-  border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
-}
-.badge[data-parity="true"] {
+.badge[data-parity="true"] { color: var(--ink-2); }
+
+/* Fills the space under short columns with the decomposition that space was
+   wasting. Corpus medians, labelled as such — a different statistic from the
+   tiles above, and the two must not blur. */
+.column-stats {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+  font-size: var(--t-12);
   color: var(--ink-2);
 }
-.badge[data-parity="true"]::before {
-  background: repeating-linear-gradient(
-    45deg,
-    color-mix(in srgb, var(--ink) 18%, transparent) 0 2px,
-    transparent 2px 4px
-  );
+.column-stats-head {
+  margin: 0 0 var(--s-1);
+  font-family: var(--ui);
+  font-size: var(--t-12);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  cursor: help;
 }
+.column-stats > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--edge) 45%, transparent);
+  padding: 1px 0;
+}
+.column-stats dt { cursor: help; }
+.column-stats dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
 
 /* The tile field itself.
 
@@ -138,15 +159,15 @@
    English word-tokens fills rows as fast as a column of narrow Telugu
    fragments, so column height stops tracking token count and the parity line
    starts lying — Telugu at 40 tokens would sit *above* English at 24. A fixed
-   grid makes rows = ceil(tokens / 4), so height is proportional to cost and the
-   comparison is honest. Tokens too long for a cell clip under a fade and carry
-   their full text in the tooltip and the accessible label. */
+   grid makes rows = ceil(tokens / 3), so height is proportional to cost and the
+   comparison is honest. Three columns rather than four so the cell is wide
+   enough for a whole word: a clipped token would counterfeit a BPE split. */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   align-content: flex-start;
   gap: 2px;               /* the seam */
-  padding: var(--s-2);
+  padding: var(--s-1);
   background: color-mix(in srgb, var(--ink) 4%, transparent);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
@@ -160,28 +181,45 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   height: 22px;
-  padding: 0 2px;
+  padding: 0 1px;
   overflow: hidden;
   background: var(--tile-face);
   border: 1px solid color-mix(in srgb, var(--edge) 85%, transparent);
   border-radius: 3px;
   box-shadow: inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
   font-family: var(--data);
-  font-size: 11px;
+  /* 9px so an 11-character token fits the cell. Martian Mono is a wide
+     monospace at 0.7em per character, so this is the size at which the longest
+     common tokens survive intact. */
+  font-size: 9px;
+  /* Slight negative tracking buys the last few pixels a whole word needs. */
+  letter-spacing: -0.03em;
   line-height: 1.35;
   white-space: pre;
   transition: transform var(--dur-tile) var(--ease),
               opacity var(--dur-tile) var(--ease);
 }
 
-/* A token too wide for its cell reads from the start and fades out at the
-   right. Centring it would clip both ends, turning "Washington" into "shing". */
-.tile[data-long="true"] {
-  justify-content: flex-start;
-  padding-left: 3px;
-  mask-image: linear-gradient(to right, #000 calc(100% - 8px), transparent);
+/* Whitespace inside a token. Shown, not hidden: a blank tile reads as a broken
+   glyph when it is really a space the tokenizer charged you for. */
+.tile .ws { opacity: 0.3; }
+
+/* A token that still does not fit gets an explicit marker, so a display
+   truncation can never be mistaken for a real BPE split. The full token stays
+   available through the tooltip and the accessible label. */
+.tile[data-truncated="true"] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 9px), transparent);
+}
+.tile[data-truncated="true"]::after {
+  content: "…";
+  position: absolute;
+  right: 0;
+  padding-left: 2px;
+  background: var(--tile-face);
+  mask-image: none;
+  color: var(--ink-2);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -238,5 +276,5 @@
 }
 @media (max-width: 420px) {
   .tile-strip { margin-left: calc(-1 * var(--s-3)); padding-left: var(--s-3); padding-right: var(--s-3); }
-  .column { width: 148px; }
+  .column { width: 210px; }
 }

@@ -39,8 +39,8 @@
 /* Full-bleed so the leftmost dots pass under the rail's glass. */
 .scatter-figure {
   position: relative;
-  margin: 0 0 0 calc(-1 * (var(--rail-w) + var(--s-6)));
-  padding-left: calc(var(--rail-w) + var(--s-6));
+  margin: 0 0 0 calc(-1 * (var(--rail-w) + var(--s-5)));
+  padding-left: calc(var(--rail-w) + var(--s-5));
 }
 .scatter-figure svg { width: 100%; height: auto; display: block; overflow: visible; }
 
@@ -66,10 +66,37 @@
   stroke-opacity: 0.5;
 }
 
+.axis-note {
+  font-family: var(--data);
+  font-size: 12px;
+  fill: var(--ink-2);
+}
+
+/* Labels on the extremes. The dot at 14x carried the whole story and was
+   anonymous without a hover; touch users had no hover to give it. */
+.point-label {
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 500;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--field-0);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.scatter-legend { margin-top: var(--s-3); align-items: center; }
+.scatter-legend .legend-title {
+  font-size: var(--t-12);
+  color: var(--ink-2);
+  margin-right: var(--s-2);
+}
+
 /* Language card: glass, because the scatter is genuinely behind it. */
 .lang-card {
   position: absolute;
-  width: 260px;
+  width: 264px;
   padding: var(--s-3) var(--s-4);
   z-index: 10;
   pointer-events: none;
@@ -80,8 +107,25 @@
   border-radius: var(--radius);
   box-shadow: var(--glass-inset), var(--glass-shadow);
 }
-.lang-card h3 { font-size: var(--t-16); }
+.lang-card h3 { font-size: var(--t-16); display: flex; align-items: baseline; gap: var(--s-2); }
+.lang-card h3 code {
+  font-family: var(--data);
+  font-size: var(--t-12);
+  font-weight: 400;
+  color: var(--ink-2);
+}
 .lang-card .card-sub { margin-top: 2px; font-size: var(--t-12); color: var(--ink-2); }
+/* Pinned: the card stops following the cursor and takes pointer events so it
+   can be read on a touch screen, where there is no hover. */
+.lang-card[data-pinned="true"] {
+  pointer-events: auto;
+  border-color: color-mix(in srgb, var(--marine) 55%, transparent);
+}
+.card-pin {
+  margin-top: var(--s-2);
+  font-size: var(--t-12);
+  color: var(--marine);
+}
 .lang-card dl { margin: var(--s-3) 0 0; display: grid; gap: 2px; }
 .lang-card dl div { display: flex; justify-content: space-between; gap: var(--s-3); }
 .lang-card dt { font-size: var(--t-12); color: var(--ink-2); }

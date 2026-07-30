@@ -86,8 +86,11 @@ a {
   box-shadow: var(--glass-inset);
 }
 
+/* Left padding is the rail plus a gutter; the horizontal budget is tight
+   because the hero has to fit five token columns wide enough to show a whole
+   English word in a cell. */
 .field {
-  padding: var(--s-6) var(--s-6) var(--s-8) calc(var(--rail-w) + var(--s-6));
+  padding: var(--s-6) var(--s-5) var(--s-8) calc(var(--rail-w) + var(--s-5));
 }
 
 .masthead h1 {

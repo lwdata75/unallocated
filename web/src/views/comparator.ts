@@ -4,19 +4,27 @@
  *
  * Same sentence, five languages, tokens as physical tiles. Columns run
  * vertically so a column's height *is* its cost, and a parity line drawn at the
- * English column's height makes every other column visibly overshoot it. The
- * contrast should land before anyone reads a word.
+ * English column's height makes every other column visibly overshoot it.
+ *
+ * Tiles are a uniform grid on purpose: with variable-width tiles a column of
+ * wide English word-tokens fills rows as fast as a column of narrow Telugu
+ * fragments, so height stops tracking token count and the parity line starts
+ * lying. Three columns, sized so the longest common English and French tokens
+ * fit whole — the whole argument is that in English one token is one word and
+ * elsewhere it is a fragment of a character, which a display truncation would
+ * counterfeit.
  */
 
 import type { Dataset, Language } from "../lib/data";
 import { scriptCode, slicePieces } from "../lib/data";
 import { getState, setState, subscribe } from "../lib/state";
-import { fertilityColour } from "../lib/ramp";
 import * as fmt from "../lib/format";
 import { getTokenizer, supportsFreeText } from "../lib/tokenize";
 import { ensureScriptFont } from "../lib/fonts";
 
 const MAX_STAGGER_MS = 360;
+/** U+2423 OPEN BOX. A space is a character the tokenizer charged you for. */
+const VISIBLE_SPACE = "␣";
 
 interface TileGeometry {
   start: number;
@@ -36,7 +44,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
       <h2>The same sentence, five languages</h2>
       <p class="caption">
         Each tile is one token. The dashed line marks what English costs, so
-        every column above it is the surcharge. Change the tokenizer in the rail
+        every column below it is the surcharge. Change the tokenizer in the rail
         and watch the tiles merge.
       </p>
       <div class="sample-nav">
@@ -67,6 +75,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
 
   const parityLine = document.createElement("div");
   parityLine.className = "parity-line";
+  parityLine.innerHTML = `<span class="parity-label tabular"></span>`;
   columnsEl.append(parityLine);
 
   root.querySelectorAll<HTMLButtonElement>("[data-step]").forEach((btn) => {
@@ -80,10 +89,11 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
   render();
 
   // The tile field reflows twice on a cold load: once with fallback metrics and
-  // again when the per-script Noto faces arrive. Without these the parity line
-  // would be measured against the first layout and then sit at the wrong height
-  // until something else triggered a render.
-  void document.fonts.ready.then(() => positionParityLine());
+  // again when the per-script Noto faces arrive.
+  void document.fonts.ready.then(() => {
+    markTruncatedTiles(columnsEl);
+    positionParityLine();
+  });
   new ResizeObserver(() => positionParityLine()).observe(columnsEl);
 
   subscribe((_s, changed) => {
@@ -123,6 +133,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     noteEl.textContent = describeSpread(sentence, state.tokenizer, state.heroLanguages, data);
 
     requestAnimationFrame(() => {
+      markTruncatedTiles(columnsEl);
       positionParityLine();
       animateFrom(before);
     });
@@ -143,12 +154,10 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
   }
 
   /**
-   * FLIP, matched by character offset rather than by index.
-   *
-   * Token counts change when the tokenizer changes, so index-to-index matching
-   * would be meaningless. Matching on the character a token starts at means
-   * several old tiles animate into the one new tile that replaced them, which
-   * reads exactly as tokens merging — the one place the animation budget goes.
+   * FLIP, matched by character offset rather than by index. Token counts change
+   * when the tokenizer changes, so index-to-index matching would be meaningless;
+   * matching on the character a token starts at means several old tiles animate
+   * into the one new tile that replaced them, which reads as tokens merging.
    */
   function animateFrom(before: Map<string, TileGeometry[]>): void {
     if (before.size === 0 || reduceMotion.matches) return;
@@ -182,8 +191,13 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     }
   }
 
+  /**
+   * Anchored to the English column, not floated off to the right, so the label
+   * sits against the thing it measures.
+   */
   function positionParityLine(): void {
     const english = columnsEl.querySelector<HTMLElement>('.column[data-code="eng_Latn"] .tiles');
+    const label = parityLine.querySelector<HTMLElement>(".parity-label")!;
     if (!english) {
       parityLine.hidden = true;
       return;
@@ -193,7 +207,8 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     const rect = english.getBoundingClientRect();
     parityLine.style.transform = `translateY(${rect.bottom - base.top}px)`;
     const count = english.querySelectorAll(".tile").length;
-    parityLine.dataset.label = `English: ${fmt.tokens(count)} tokens`;
+    label.textContent = `English: ${fmt.tokens(count)} tokens`;
+    label.style.left = `${rect.left - base.left}px`;
   }
 
   // --------------------------------------------------------------- free text
@@ -226,12 +241,11 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
       const tokenize = await getTokenizer(key);
       if (textarea.value.trim() !== text || getState().tokenizer !== key) return;
 
-      // Same representation as samples.json, so free text and the pre-tokenized
-      // columns go through one render path and cannot drift apart.
       const ends = tokenize(text);
       const pieces = slicePieces(text, ends);
       freeTilesEl.replaceChildren(...pieces.map((piece, i) => makeTile(piece, i)));
       delete freeTilesEl.dataset.loading;
+      requestAnimationFrame(() => markTruncatedTiles(freeTilesEl));
       const chars = Array.from(text).length;
       statusEl.textContent =
         `${fmt.tokens(pieces.length)} tokens for ${fmt.tokens(chars)} characters ` +
@@ -292,13 +306,18 @@ function buildColumn(
   count.className = "column-count tabular";
   count.innerHTML = `${fmt.tokens(pieces.length)}<span class="unit">tokens</span>`;
 
+  // No colour on the badge. It duplicated a number written right beside it, and
+  // on a sentence where every language sits between 1.3x and 1.7x the ramp
+  // collapsed to one shade and encoded nothing. Normalising per sentence would
+  // be worse: the same multiplier would take a different colour depending on
+  // which sentence you were looking at. The ramp keeps one anchoring and lives
+  // on the scatter, where it spans its full range.
   const badge = document.createElement("span");
   badge.className = "badge";
   if (code === "eng_Latn") {
     badge.dataset.parity = "true";
     badge.textContent = "the baseline";
   } else {
-    badge.style.setProperty("--badge-swatch", fertilityColour(ratio));
     badge.textContent = fmt.multiplierVsEnglish(Number(ratio.toFixed(2)));
   }
 
@@ -314,34 +333,114 @@ function buildColumn(
 
   let offset = 0;
   for (const [index, piece] of pieces.entries()) {
-    const tile = makeTile(piece, index, offset);
-    tiles.append(tile);
+    tiles.append(makeTile(piece, index, offset));
     offset = ends[index];
   }
 
-  column.append(head, tiles);
+  column.append(head, tiles, buildStats(language, state.tokenizer));
   return column;
 }
 
+/**
+ * The corpus-level decomposition for this language, filling the space under
+ * short columns.
+ *
+ * These are medians over the whole FLORES dev set, NOT counts for the sentence
+ * displayed above — a different statistic with a different referent, so it is
+ * labelled as such rather than left to be read as belonging to the tiles.
+ */
+function buildStats(language: Language | undefined, tokenizer: string): HTMLElement {
+  // A <dl> may only contain dt/dd pairs (optionally wrapped in a div), so the
+  // caption lives outside it rather than as a stray child.
+  const block = document.createElement("div");
+  block.className = "column-stats-block";
+  const stats = document.createElement("dl");
+  stats.className = "column-stats tabular";
+  const metrics = language?.metrics.flores?.[tokenizer];
+  if (!language || !metrics) return block;
+
+  const floor = language.floors?.flores ?? language.floor;
+  const excess = Math.max(metrics.tokens - floor, 0);
+
+  const rows: Array<[string, string, string]> = [
+    ["Floor", `${fmt.tokens(floor)}`, "Fewest median tokens any of the eight tokenizers achieves"],
+    [
+      "Neglect",
+      excess === 0 ? "0" : `+${fmt.tokens(excess)} (${Math.round(metrics.neglect * 100)}%)`,
+      "Median tokens above that floor: vocabulary never allocated to this language",
+    ],
+    ["Chars/token", metrics.cpt.toFixed(2), "Characters per token, a check against script density"],
+  ];
+
+  const caption = document.createElement("p");
+  caption.className = "column-stats-head";
+  caption.textContent = "Across the corpus";
+  caption.title = "Medians over all 997 FLORES sentences, not the sentence shown above";
+
+  for (const [term, value, explain] of rows) {
+    const wrap = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = term;
+    dt.title = explain;
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+    wrap.append(dt, dd);
+    stats.append(wrap);
+  }
+
+  block.append(caption, stats);
+  return block;
+}
+
+/**
+ * One tile, one token.
+ *
+ * Whitespace is rendered as a visible open box at low opacity rather than left
+ * blank: a blank tile reads as a missing glyph, when in fact it is a space the
+ * tokenizer charged for. Substituting the glyph costs no width, so the tile
+ * still fits exactly what the token contains.
+ */
 function makeTile(piece: string, index: number, start = index): HTMLElement {
   const tile = document.createElement("span");
   tile.className = "tile";
   tile.dataset.start = String(start);
+
   if (piece === "") {
-    // A token that carries no glyph: byte-level BPE split a character in two.
+    // No characters at all: byte-level BPE split a character across tokens and
+    // this is the continuation half. You are paying for it.
     tile.dataset.empty = "true";
     tile.title = "A token with no character of its own — part of a character split across tokens";
-  } else {
-    tile.textContent = piece;
-    // The cell is uniform, so a long token clips. Keep the whole thing
-    // reachable by pointer and by screen reader.
-    if (piece.length > 4) {
-      tile.dataset.long = "true";
-      tile.title = piece;
-    }
-    if (/^\s/.test(piece)) tile.dataset.space = "true";
+    tile.setAttribute("aria-label", "token with no character");
+    return tile;
   }
+
+  for (const run of piece.match(/\s+|\S+/g) ?? []) {
+    const span = document.createElement("span");
+    if (/^\s/.test(run)) {
+      span.className = "ws";
+      span.textContent = VISIBLE_SPACE.repeat(run.length);
+    } else {
+      span.textContent = run;
+    }
+    tile.append(span);
+  }
+  tile.title = piece;
+  tile.setAttribute("aria-label", `token ${JSON.stringify(piece)}`);
   return tile;
+}
+
+/**
+ * Flag tiles whose text does not fit, so a display truncation is never mistaken
+ * for a BPE split. Measured after layout rather than guessed from string
+ * length, because glyph widths vary wildly between scripts.
+ */
+function markTruncatedTiles(scope: HTMLElement): void {
+  for (const tile of scope.querySelectorAll<HTMLElement>(".tile")) {
+    if (tile.dataset.empty === "true") continue;
+    const overflowing = tile.scrollWidth - tile.clientWidth > 1;
+    if (overflowing) tile.dataset.truncated = "true";
+    else delete tile.dataset.truncated;
+  }
 }
 
 function altTextFor(
