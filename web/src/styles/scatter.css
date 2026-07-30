@@ -146,3 +146,29 @@
 @media (max-width: 520px) {
   .bar-list li { grid-template-columns: 6.5rem 1fr 3rem; }
 }
+
+/* The trend and its uncertainty. The band is not decoration: rho is about
+   -0.29, and a bare curve would read as a far stronger claim than the data
+   supports. Where the band is wide, the fit is not constrained — which is most
+   of the right-hand tail. */
+.trend-band {
+  fill: var(--ink);
+  fill-opacity: 0.07;
+  stroke: none;
+  pointer-events: none;
+}
+.trend-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: 0.45;
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  pointer-events: none;
+}
+
+.point-labels .leader {
+  stroke: var(--ink);
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+  pointer-events: none;
+}

@@ -296,12 +296,86 @@ async function main() {
   );
   process.stdout.write(`labelled extremes: ${labels.join(", ")}\n`);
   if (labels.length < 6) problems.push(`only ${labels.length} points labelled, expected 6-8`);
+
+  // Labels must not overlap each other. Three of them used to stack on top of
+  // one another in the top-left corner and were unreadable.
+  const clashes = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll(".point-label")].map((t) => ({
+      name: t.textContent,
+      b: t.getBoundingClientRect(),
+    }));
+    const out = [];
+    for (let i = 0; i < boxes.length; i += 1) {
+      for (let j = i + 1; j < boxes.length; j += 1) {
+        const a = boxes[i].b;
+        const c = boxes[j].b;
+        if (a.left < c.right && c.left < a.right && a.top < c.bottom && c.top < a.bottom) {
+          out.push(`${boxes[i].name} / ${boxes[j].name}`);
+        }
+      }
+    }
+    return out;
+  });
+  process.stdout.write(`${clashes.length === 0 ? "ok  " : "FAIL"} label collisions: ${clashes.length}\n`);
+  if (clashes.length) problems.push(`scatter labels overlap: ${clashes.join("; ")}`);
+
+  const trend = await page.evaluate(() => ({
+    line: !!document.querySelector(".trend-line"),
+    band: !!document.querySelector(".trend-band"),
+  }));
+  if (!trend.line || !trend.band) {
+    problems.push("trend curve must never be drawn without its confidence band");
+  }
+
   await page.keyboard.press("Escape");
 
   // --- dark mode and narrow layout -----------------------------------------
   await page.click('[data-role="theme"]');
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(OUT, "07-dark.png") });
+
+  // --- the document must never scroll sideways ------------------------------
+  // The rail is fixed; if the document scrolls horizontally it drags everything
+  // that is not fixed out from under it and the sidebar is clipped mid-word.
+  // Only the tile strip may scroll, and only within itself.
+  for (const width of [1280, 1440, 1920]) {
+    const sized = await browser.newPage({ viewport: { width, height: 900 } });
+    await sized.goto(BASE, { waitUntil: "networkidle" });
+    await sized.waitForSelector(".column .tile");
+    await sized.evaluate(() => document.fonts.ready);
+    // Worst case: the tallest tokenizer, strip scrolled to the far end.
+    await sized.evaluate(async () => {
+      [...document.querySelectorAll(".tok-btn")]
+        .find((b) => b.textContent.includes("Historical")).click();
+      await new Promise((r) => setTimeout(r, 500));
+      const s = document.querySelector(".tile-strip");
+      s.scrollLeft = s.scrollWidth;
+    });
+    await sized.waitForTimeout(300);
+    const geom = await sized.evaluate(() => {
+      const de = document.documentElement;
+      const rail = document.querySelector(".rail").getBoundingClientRect();
+      const strip = document.querySelector(".tile-strip");
+      return {
+        docOverflow: de.scrollWidth - de.clientWidth,
+        railLeft: Math.round(rail.left),
+        stripScroll: strip.scrollWidth - strip.clientWidth,
+      };
+    });
+    const ok = geom.docOverflow <= 0 && geom.railLeft >= 0;
+    process.stdout.write(
+      `${ok ? "ok  " : "FAIL"} ${width}px: document overflow ${geom.docOverflow}px, ` +
+        `rail left ${geom.railLeft}px, strip scrolls ${geom.stripScroll}px\n`
+    );
+    if (geom.docOverflow > 0) {
+      problems.push(`document scrolls horizontally at ${width}px (${geom.docOverflow}px)`);
+    }
+    if (geom.railLeft < 0) {
+      problems.push(`rail is clipped at ${width}px (left = ${geom.railLeft}px)`);
+    }
+    await sized.screenshot({ path: path.join(OUT, `10-width-${width}.png`) });
+    await sized.close();
+  }
 
   const narrow = await browser.newPage({ viewport: { width: 380, height: 900 } });
   await narrow.goto(BASE, { waitUntil: "networkidle" });

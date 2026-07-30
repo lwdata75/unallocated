@@ -29,6 +29,7 @@ import "d3-transition";
 import type { Dataset, Language, LanguageMetrics } from "../lib/data";
 import { getState, subscribe } from "../lib/state";
 import { fertilityColour } from "../lib/ramp";
+import { loess } from "../lib/loess";
 import * as fmt from "../lib/format";
 
 const W = 1200;
@@ -63,6 +64,9 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
         people speak it. Colour is the share of those tokens that sits above the
         language's floor — the part no writing system requires. Hover or focus a
         dot for detail, click to pin it, drag across the plot to filter.
+        Labelled: the 5 highest-surcharge languages and the 3 largest by
+        speakers. The curve is a LOESS smoother; its shaded band is the 95%
+        interval, and its width is the point — the relationship is weak.
       </p>
       <div class="scatter-controls">
         <label class="inline-field">
@@ -111,6 +115,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
   const gGrid = svg.append("g").attr("class", "grid");
   const gAxes = svg.append("g").attr("class", "axes");
   const gBrush = svg.append("g").attr("class", "brush");
+  const gTrendUnder = svg.append("g").attr("class", "trend");
   const gDots = svg
     .append("g")
     .attr("class", "dots")
@@ -121,6 +126,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
     // below still works, because keydown bubbles up from the focused circle.
     .attr("tabindex", -1)
     .attr("aria-label", "Languages by cost and speaker count");
+  const gTrend = gTrendUnder;
   const gLabels = svg.append("g").attr("class", "point-labels");
 
   buildLegend();
@@ -221,6 +227,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
     }
 
     drawAxes(rows);
+    drawTrend(rows);
 
     const dots = gDots
       .selectAll<SVGCircleElement, Row>("circle")
@@ -282,8 +289,13 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
   }
 
   /**
-   * Label the points that carry the story. The dot at 14x was anonymous, which
-   * left the most striking thing on the chart unreadable without a hover.
+   * Label the points that carry the story, by a rule stated in the caption so
+   * a reader is never left wondering why these and not others.
+   *
+   * Placement is a short annealing pass: start beside the bubble, then relax
+   * away from every other label, every bubble and the plot edges until nothing
+   * overlaps. A leader line is drawn whenever the label ends up far enough from
+   * its point that the pairing would otherwise be ambiguous.
    */
   function drawLabels(rows: Row[]): void {
     const visible = rows.filter((d) => !dimmed(d));
@@ -293,39 +305,122 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
       .slice(0, N_LABELS_POPULATION);
     const chosen = [...new Set([...byCost, ...byPopulation])];
 
-    // Simple anti-collision: place to the right, flip left near the edge, and
-    // nudge down while a label would overlap one already placed.
-    const placed: Array<{ x: number; y: number; w: number }> = [];
+    const LH = 16;
     const items = chosen.map((d) => {
       const cx = x(d.m.fertility);
       const cy = y(d.language.speakers);
       const radius = r(d.language.speakers);
-      const width = d.language.name.length * 7.2;
-      const flip = cx + radius + width + 12 > W - M.right;
-      let tx = flip ? cx - radius - 6 : cx + radius + 6;
-      let ty = cy + 4;
-      let guard = 0;
-      while (
-        guard++ < 24 &&
-        placed.some((p) => Math.abs(p.y - ty) < 15 && Math.abs(p.x - tx) < (p.w + width) / 2)
-      ) {
-        ty += 15;
-      }
-      placed.push({ x: tx, y: ty, w: width });
-      return { d, tx, ty, flip };
+      const w = d.language.name.length * 7.1 + 6;
+      const flip = cx + radius + w + 14 > W - M.right;
+      return {
+        d, cx, cy, radius, w, flip,
+        tx: flip ? cx - radius - 8 : cx + radius + 8,
+        ty: cy + 4,
+      };
     });
 
-    const labels = gLabels.selectAll<SVGTextElement, typeof items[number]>("text")
+    // Bubbles the labels must clear — the labelled ones plus every dot large
+    // enough to hide a word behind it.
+    const bubbles = visible
+      .filter((v) => r(v.language.speakers) > 10)
+      .map((v) => ({ x: x(v.m.fertility), y: y(v.language.speakers), r: r(v.language.speakers) }));
+
+    const left = (i: typeof items[number]) => (i.flip ? i.tx - i.w : i.tx);
+    const overlaps = (a: typeof items[number], b: typeof items[number]) =>
+      Math.abs(a.ty - b.ty) < LH &&
+      left(a) < left(b) + b.w && left(b) < left(a) + a.w;
+
+    for (let pass = 0; pass < 60; pass += 1) {
+      let moved = false;
+      for (const a of items) {
+        for (const b of items) {
+          if (a === b) continue;
+          if (!overlaps(a, b)) continue;
+          const dir = a.ty <= b.ty ? -1 : 1;
+          a.ty += dir * 4;
+          b.ty -= dir * 4;
+          moved = true;
+        }
+        // Push clear of any bubble it is sitting on.
+        for (const bub of bubbles) {
+          const lx = left(a) + a.w / 2;
+          const dx = lx - bub.x;
+          const dy = a.ty - 4 - bub.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < bub.r + 9 && dist > 0.01) {
+            a.ty += (dy / dist) * 5;
+            moved = true;
+          }
+        }
+        a.ty = Math.max(M.top + 12, Math.min(H - M.bottom - 6, a.ty));
+      }
+      if (!moved) break;
+    }
+
+    // Deterministic finishing sweep. The relaxation above can settle just short
+    // of clearing, especially against the top clamp where it has nowhere to go;
+    // this walks top to bottom and pushes each label below the previous one it
+    // actually overlaps horizontally, which always terminates.
+    const byY = [...items].sort((a, b) => a.ty - b.ty);
+    for (let i = 1; i < byY.length; i += 1) {
+      for (let j = 0; j < i; j += 1) {
+        const above = byY[j];
+        const here = byY[i];
+        const horizontallyClear =
+          left(here) > left(above) + above.w || left(above) > left(here) + here.w;
+        if (horizontallyClear) continue;
+        if (here.ty - above.ty < LH) here.ty = above.ty + LH;
+      }
+    }
+
+    const labels = gLabels.selectAll<SVGGElement, typeof items[number]>("g.label")
       .data(items, (i) => i.d.language.code);
-    labels.enter()
-      .append("text")
-      .attr("class", "point-label")
-      .merge(labels)
+    const entered = labels.enter().append("g").attr("class", "label");
+    entered.append("line").attr("class", "leader");
+    entered.append("text").attr("class", "point-label");
+
+    const merged = entered.merge(labels);
+    merged.select<SVGTextElement>("text")
       .attr("x", (i) => i.tx)
       .attr("y", (i) => i.ty)
       .attr("text-anchor", (i) => (i.flip ? "end" : "start"))
       .text((i) => i.d.language.name);
+    merged.select<SVGLineElement>("line")
+      .attr("x1", (i) => i.cx + (i.flip ? -i.radius : i.radius))
+      .attr("y1", (i) => i.cy)
+      .attr("x2", (i) => i.tx + (i.flip ? 3 : -3))
+      .attr("y2", (i) => i.ty - 4)
+      // Only where the label has been pushed away from its own point.
+      .attr("opacity", (i) => (Math.abs(i.ty - 4 - i.cy) > 7 ? 0.5 : 0));
     labels.exit().remove();
+  }
+
+  /**
+   * The trend, drawn with its own uncertainty. Never the curve alone: rho is
+   * weak, and a bare line would assert more than the data carries.
+   */
+  function drawTrend(rows: Row[]): void {
+    gTrend.selectAll("*").remove();
+    const pts = loess(
+      rows.map((d) => Math.log10(d.m.fertility)),
+      rows.map((d) => Math.log10(d.language.speakers)),
+      0.6,
+      60
+    );
+    if (pts.length === 0) return;
+
+    const px = (lx: number) => x(10 ** lx);
+    const py = (ly: number) => y(10 ** ly);
+    const clampY = (v: number) => Math.max(M.top, Math.min(H - M.bottom, v));
+
+    const band =
+      pts.map((p) => `${px(p.x)},${clampY(py(p.hi))}`).join(" ") +
+      " " +
+      [...pts].reverse().map((p) => `${px(p.x)},${clampY(py(p.lo))}`).join(" ");
+    gTrend.append("polygon").attr("class", "trend-band").attr("points", band);
+    gTrend.append("path")
+      .attr("class", "trend-line")
+      .attr("d", "M" + pts.map((p) => `${px(p.x)},${clampY(py(p.y))}`).join("L"));
   }
 
   function drawAxes(rows: Row[]): void {

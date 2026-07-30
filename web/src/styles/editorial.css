@@ -39,12 +39,24 @@
   border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
-/* A generated figure. The dotted underline signals that hovering or focusing it
-   reveals the statistic and sample the number refers to — a number without its
-   referent is not checkable. */
+/* A generated figure set inline in prose.
+
+   Martian Mono runs visibly larger than Instrument Sans at the same nominal
+   size, so an inline number used to look like the font had changed mid-sentence
+   and pushed the line apart. Scaled to 0.9em with tightened tracking, and
+   line-height pinned to inherit so a line containing a number keeps the same
+   rhythm as one without. */
 .fig {
-  border-bottom: 1px dotted color-mix(in srgb, var(--ink) 45%, transparent);
+  font-family: var(--data);
+  font-size: 0.9em;
+  letter-spacing: -0.02em;
+  line-height: inherit;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
   cursor: help;
+}
+.fig:hover, .fig:focus-visible {
+  border-bottom-color: color-mix(in srgb, var(--marine) 60%, transparent);
 }
 .fig-missing { color: var(--ramp-5_0); border-bottom-style: solid; }
 
@@ -87,3 +99,36 @@
 }
 
 .caption { color: var(--ink-2); }
+
+
+/* The Telugu/English comparison. Four rows of three numbers read serially in
+   prose is a table in disguise; as a table it can be scanned, and the ratio can
+   be shown rather than computed by the reader. */
+.figures {
+  width: 100%;
+  max-width: 46ch;
+  margin: 0 0 var(--s-4);
+  border-collapse: collapse;
+  font-size: var(--t-13);
+}
+.figures caption {
+  caption-side: bottom;
+  margin-top: var(--s-2);
+  font-size: var(--t-12);
+  color: var(--ink-2);
+  text-align: left;
+}
+.figures th, .figures td {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--edge);
+  text-align: right;
+}
+.figures thead th {
+  font-weight: 500;
+  font-size: var(--t-12);
+  color: var(--ink-2);
+  border-bottom-color: color-mix(in srgb, var(--ink) 35%, transparent);
+}
+.figures th[scope="row"] { text-align: left; font-weight: 400; }
+.figures tbody tr:last-child th,
+.figures tbody tr:last-child td { border-bottom: none; }

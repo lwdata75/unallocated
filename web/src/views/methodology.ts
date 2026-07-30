@@ -15,6 +15,50 @@ import type { Dataset } from "../lib/data";
 import { rampStops } from "../lib/ramp";
 import * as fmt from "../lib/format";
 
+/**
+ * "325 on gpt2, 208 on cl100k, 48 on o200k, 34 on bloom" is a table pretending
+ * to be prose: four rows of three values, read serially. Rendered as an actual
+ * table it can be scanned, the ratio column can be shown rather than computed in
+ * the reader's head, and the paragraph is left holding only the conclusion.
+ */
+function figuresTable(figures: Dataset["headline"]["figures"]): string {
+  const telugu = figures.telugu_median_tokens?.values;
+  const english = figures.english_median_tokens?.values;
+  if (!telugu || !english) return "";
+
+  const NAMES: Record<string, string> = {
+    gpt2: "GPT-2",
+    cl100k: "cl100k",
+    o200k: "o200k",
+    bloom: "BLOOM",
+  };
+
+  const rows = Object.keys(telugu)
+    .map((key) => {
+      const t = telugu[key];
+      const e = english[key];
+      return `<tr>
+        <th scope="row">${NAMES[key] ?? key}</th>
+        <td class="tabular">${t}</td>
+        <td class="tabular">${e}</td>
+        <td class="tabular">${(t / e).toFixed(1)}×</td>
+      </tr>`;
+    })
+    .join("");
+
+  return `
+    <table class="figures">
+      <caption>
+        Median tokens per sentence, FLORES-200 dev split (997 sentences).
+      </caption>
+      <thead>
+        <tr><th scope="col">Tokenizer</th><th scope="col">Telugu</th>
+            <th scope="col">English</th><th scope="col">Ratio</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
 export function mountMethodology(root: HTMLElement, data: Dataset): void {
   const meta = data.languages.meta;
   const figures = data.headline.figures;
@@ -78,10 +122,14 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
         "multilingual"; they bought a specific list.
       </p>
       <p>
-        <strong>The demonstration.</strong> Telugu's median FLORES-200 sentence
-        costs ${fig("telugu_median_tokens")} tokens, against
-        ${fig("english_median_tokens")} for the same sentences in English.
-        Decomposed: ${fig("telugu_floor_and_neglect")}. On GPT-2,
+        <strong>The demonstration.</strong> The same sentences, in Telugu and in
+        English, priced by four tokenizer families. Telugu's writing system does
+        not change down this table; only how much vocabulary was spent on it.
+      </p>
+      ${figuresTable(figures)}
+      <p>
+        Decomposed: ${fig("telugu_floor_and_neglect")}. The floor is what the
+        script inherently needs; the rest is vocabulary nobody spent. On GPT-2,
         ${fig("telugu_glyphless_share")} of Telugu tokens contain no character at
         all — they are byte fragments of characters the vocabulary cannot
         represent whole. This is the clearest single case, but it is evidence for

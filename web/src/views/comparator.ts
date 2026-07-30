@@ -94,7 +94,21 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     markTruncatedTiles(columnsEl);
     positionParityLine();
   });
-  new ResizeObserver(() => positionParityLine()).observe(columnsEl);
+  new ResizeObserver(() => {
+    positionParityLine();
+    updateScrollAffordance();
+  }).observe(columnsEl);
+
+  const strip = root.querySelector<HTMLElement>(".tile-strip")!;
+  strip.addEventListener("scroll", updateScrollAffordance, { passive: true });
+  updateScrollAffordance();
+
+  /** Fade the right edge only while there is more to scroll to. */
+  function updateScrollAffordance(): void {
+    const max = strip.scrollWidth - strip.clientWidth;
+    strip.dataset.scrollable = max > 4 ? "true" : "false";
+    strip.dataset.scrolledEnd = max > 4 && strip.scrollLeft >= max - 4 ? "true" : "false";
+  }
 
   subscribe((_s, changed) => {
     if (
@@ -124,6 +138,8 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     columnsEl.querySelectorAll(".column").forEach((el) => el.remove());
 
     const englishCount = sentence.tokens["eng_Latn"]?.[state.tokenizer]?.length ?? 0;
+    columnsEl.style.gridTemplateColumns =
+      `repeat(${state.heroLanguages.length}, minmax(224px, 1fr))`;
 
     for (const [slot, code] of state.heroLanguages.entries()) {
       columnsEl.append(buildColumn(slot, code, sentence, englishCount, options, data));
@@ -135,6 +151,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     requestAnimationFrame(() => {
       markTruncatedTiles(columnsEl);
       positionParityLine();
+      updateScrollAffordance();
       animateFrom(before);
     });
   }
@@ -321,7 +338,7 @@ function buildColumn(
     badge.textContent = fmt.multiplierVsEnglish(Number(ratio.toFixed(2)));
   }
 
-  head.append(row, count, badge);
+  head.append(row, count, badge, buildSentenceStats(sentence, code, pieces.length));
 
   const script = scriptCode(code);
   ensureScriptFont(script);
@@ -342,13 +359,44 @@ function buildColumn(
 }
 
 /**
- * The corpus-level decomposition for this language, filling the space under
- * short columns.
+ * Two registers, kept visually apart.
  *
- * These are medians over the whole FLORES dev set, NOT counts for the sentence
- * displayed above — a different statistic with a different referent, so it is
- * labelled as such rather than left to be read as belonging to the tiles.
+ * The top group describes the sentence tiled above it. The bottom group is
+ * medians over all 997 FLORES sentences. Those are different statistics and a
+ * reader who subtracts one from the other gets a wrong answer, so the corpus
+ * group is recessed onto its own surface behind a rule and says which corpus it
+ * is a median over.
  */
+function buildSentenceStats(
+  sentence: Dataset["samples"]["sentences"][number],
+  code: string,
+  tokenCount: number
+): HTMLElement {
+  const block = document.createElement("div");
+  block.className = "sentence-stats tabular";
+
+  // Per-sentence floor: the fewest tokens any of the eight tokenizers spends on
+  // this exact sentence. Derivable from samples.json, which carries all eight.
+  const perTokenizer = sentence.tokens[code];
+  if (!perTokenizer) return block;
+  const counts = Object.values(perTokenizer).map((ends) => ends.length);
+  if (counts.length === 0) return block;
+  const floor = Math.min(...counts);
+  const excess = Math.max(tokenCount - floor, 0);
+
+  // Header mirrors the corpus block below, so the two registers read as a pair
+  // rather than as one list that happens to be interrupted. dt/dd must sit in a
+  // real <dl>: loose ones in a <div> are an accessibility-tree error.
+  block.innerHTML = `
+    <p class="stats-head">This sentence</p>
+    <dl>
+      <div><dt>Floor</dt><dd>${fmt.tokens(floor)}</dd></div>
+      <div><dt>Above floor</dt><dd>${excess === 0 ? "0" : `+${fmt.tokens(excess)}`}</dd></div>
+    </dl>`;
+  block.title = "For this sentence: the fewest tokens any of the eight tokenizers spends on it";
+  return block;
+}
+
 function buildStats(language: Language | undefined, tokenizer: string): HTMLElement {
   // A <dl> may only contain dt/dd pairs (optionally wrapped in a div), so the
   // caption lives outside it rather than as a stray child.
@@ -374,8 +422,8 @@ function buildStats(language: Language | undefined, tokenizer: string): HTMLElem
 
   const caption = document.createElement("p");
   caption.className = "column-stats-head";
-  caption.textContent = "Across the corpus";
-  caption.title = "Medians over all 997 FLORES sentences, not the sentence shown above";
+  caption.textContent = "Median across FLORES-200";
+  caption.title = "Medians over all 997 FLORES-200 sentences, not the sentence shown above";
 
   for (const [term, value, explain] of rows) {
     const wrap = document.createElement("div");

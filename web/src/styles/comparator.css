@@ -6,21 +6,43 @@
    overshoots it. That parity line is the signature element and carries the
    whole argument without a word of copy.                                     */
 
+/* Only this strip scrolls sideways. The page itself must never: the rail is
+   fixed, and a horizontally scrolled document drags everything that is not
+   fixed out from under it. A fade at the right edge is the affordance that the
+   strip has more to show. */
 .tile-strip {
+  position: relative;
   /* Full-bleed: cancels the field's left padding so columns pass under the
      rail's glass when the strip scrolls horizontally. */
   margin-left: calc(-1 * (var(--rail-w) + var(--s-5)));
   padding-left: calc(var(--rail-w) + var(--s-5));
-  padding-right: var(--s-5);
+  /* No right padding: the strip's border box already ends at the field's
+     content edge, so padding here would shrink the usable track width by
+     exactly that much and force a scroll at widths where the columns fit. */
+  padding-right: 0;
   padding-bottom: var(--s-3);
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
 
+.tile-strip[data-scrollable="true"] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
+}
+.tile-strip[data-scrolled-end="true"] { mask-image: none; }
+
+/* head / tiles / stats each get their own grid row, so the five stat blocks
+   line up on one baseline instead of each starting under its own column. The
+   tile grids keep their natural height — that is what encodes cost — and the
+   row simply reserves the height of the tallest. */
 .columns {
   position: relative;
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  /* Track count is set from JS to the number of hero columns. minmax(224px,1fr)
+     keeps every column at least wide enough for a whole English word and shares
+     any surplus; below that total the strip scrolls rather than the cell
+     shrinking. */
+  grid-template-rows: auto auto auto;
   gap: var(--s-3);
   min-width: min-content;
   padding-top: var(--s-2);
@@ -34,40 +56,49 @@
   left: 0;
   right: 0;
   height: 0;
-  border-top: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent);
+  /* Faint: it crosses the taller columns' tiles and must not read as a
+     strikethrough over them. */
+  border-top: 1px dashed color-mix(in srgb, var(--ink) 16%, transparent);
   pointer-events: none;
   z-index: 2;
   transition: transform var(--dur-tile) var(--ease);
 }
 
-/* Anchored against the English column, which is what it measures. Floating it
-   off to the right left it hanging over empty space. */
+/* A tag riding the line itself, vertically centred on it and sitting at the
+   start of the English column. It used to sit in the row where the stat blocks
+   now live and collided with them; pulling it into the gutter instead put it
+   outside the scrollable strip, where it was clipped. */
 .parity-label {
   position: absolute;
-  top: 3px;
+  top: 0;
+  transform: translateY(-50%);
   white-space: nowrap;
-  font-size: var(--t-12);
+  font-size: 11px;
   color: var(--ink-2);
-  background: color-mix(in srgb, var(--field-0) 88%, transparent);
-  padding: 0 var(--s-1);
-  border-radius: 2px;
+  background: var(--field-0);
+  border: 1px solid var(--edge);
+  padding: 1px var(--s-2);
+  border-radius: 999px;
   transition: left var(--dur-tile) var(--ease);
 }
 
+/* Never narrows past the width at which an 11-character token — the longest in
+   the English and French sample sentences — still fits whole in a three-column
+   grid. A token clipped by its cell would be indistinguishable from a genuine
+   BPE split, which is the one thing this view exists to show, so below that
+   width the strip scrolls rather than the cell shrinking. */
 .column {
-  /* Grows to fill the field but never narrows past the width at which an
-     11-character token — the longest in the English and French sample
-     sentences — still fits whole in a three-column grid. A token clipped by its
-     cell would be indistinguishable from a genuine BPE split, which is the one
-     thing this view exists to show. Below that width the strip scrolls rather
-     than shrinking the cell. */
-  flex: 1 1 224px;
-  min-width: 224px;
-  max-width: 300px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-row: 1 / -1;
+  grid-template-rows: subgrid;
   gap: var(--s-2);
+  min-width: 0;
 }
+
+/* Natural height, so the column still measures its own cost rather than being
+   stretched to match the tallest. */
+.column .tiles { align-self: start; }
+.column .column-stats-block { align-self: end; }
 
 .column-head { display: flex; flex-direction: column; gap: var(--s-1); min-height: 74px; }
 
@@ -94,6 +125,10 @@
   font-family: var(--data);
   font-size: var(--t-20);
   letter-spacing: -0.02em;
+  /* Must not wrap: a wrapped count pushes the rows beneath it out of line with
+     the neighbouring columns, which is exactly the misalignment the shared
+     grid rows exist to prevent. */
+  white-space: nowrap;
 }
 .column-count .unit {
   font-size: var(--t-12);
@@ -123,9 +158,36 @@
 }
 .badge[data-parity="true"] { color: var(--ink-2); }
 
-/* Fills the space under short columns with the decomposition that space was
-   wasting. Corpus medians, labelled as such — a different statistic from the
-   tiles above, and the two must not blur. */
+/* Figures for the sentence tiled below. Sits with the count, in the same
+   register as the tiles. */
+.sentence-stats {
+  margin-top: var(--s-1);
+  font-size: var(--t-12);
+  color: var(--ink-2);
+}
+.sentence-stats dl { margin: 0; display: grid; gap: 1px; }
+.sentence-stats dl > div { display: flex; justify-content: space-between; gap: var(--s-2); }
+.stats-head {
+  margin: 0 0 2px;
+  font-family: var(--ui);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-2);
+  opacity: 0.85;
+}
+.sentence-stats dt, .sentence-stats dd { margin: 0; display: inline; }
+.sentence-stats dd { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* Corpus medians. Deliberately recessed onto their own surface behind a rule:
+   they are a different statistic from the per-sentence figures above, and a
+   reader who subtracts one from the other gets a wrong answer. */
+.column-stats-block {
+  margin-top: var(--s-3);
+  padding: var(--s-2) var(--s-2) var(--s-1);
+  border-top: 1px solid var(--edge);
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
 .column-stats {
   margin: 0;
   display: grid;
@@ -136,10 +198,10 @@
 .column-stats-head {
   margin: 0 0 var(--s-1);
   font-family: var(--ui);
-  font-size: var(--t-12);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 0.75;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-2);
+  opacity: 0.85;
   cursor: help;
 }
 .column-stats > div {

@@ -19,6 +19,8 @@
   --ramp-8_0: #6e2437;
 
   --surface: var(--field-1);
+  /* The rail sits one step off the content surface so it reads as chrome. */
+  --rail-surface: color-mix(in srgb, #dfe4ea 72%, transparent);
 
   /* Glass. Only legitimate where real content sits behind it. */
   --glass-bg: color-mix(in srgb, var(--surface) 62%, transparent);
@@ -82,6 +84,7 @@
 
     --glass-inset: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
     --glass-shadow: 0 1px 3px color-mix(in srgb, #000 40%, transparent);
+    --rail-surface: color-mix(in srgb, #0c0f15 78%, transparent);
   }
 }
 
@@ -103,6 +106,7 @@
   --ramp-8_0: #6e2437;
   --glass-inset: inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
   --glass-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent);
+  --rail-surface: color-mix(in srgb, #dfe4ea 72%, transparent);
 }
 
 :root[data-theme="dark"] {
@@ -121,6 +125,7 @@
   --ramp-8_0: #90384f;
   --glass-inset: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
   --glass-shadow: 0 1px 3px color-mix(in srgb, #000 40%, transparent);
+  --rail-surface: color-mix(in srgb, #0c0f15 78%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
