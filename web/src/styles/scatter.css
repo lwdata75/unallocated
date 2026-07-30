@@ -1,0 +1,104 @@
+/* View 2 — the scatter, and its narrow-viewport bar list. */
+
+.scatter-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-top: var(--s-3);
+}
+
+.inline-field { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--t-13); }
+.inline-field select {
+  padding: var(--s-1) var(--s-2);
+  font-family: var(--ui);
+  font-size: var(--t-13);
+  color: var(--ink);
+  background: var(--field-1);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-sm);
+}
+
+.brush-readout { font-size: var(--t-12); color: var(--ink-2); }
+
+.chip {
+  padding: var(--s-1) var(--s-3);
+  font-family: var(--ui);
+  font-size: var(--t-12);
+  color: var(--ink);
+  background: var(--field-1);
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--marine); }
+
+.sample-nav { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-3); }
+.sample-pos { font-size: var(--t-12); color: var(--ink-2); }
+
+/* Full-bleed so the leftmost dots pass under the rail's glass. */
+.scatter-figure {
+  position: relative;
+  margin: 0 0 0 calc(-1 * (var(--rail-w) + var(--s-6)));
+  padding-left: calc(var(--rail-w) + var(--s-6));
+}
+.scatter-figure svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+.axis-tick {
+  font-family: var(--data);
+  font-size: 13px;
+  fill: var(--ink-2);
+}
+.axis-title {
+  font-family: var(--ui);
+  font-size: 14px;
+  font-weight: 500;
+  fill: var(--ink-2);
+}
+
+.dots circle { cursor: crosshair; transition: fill-opacity var(--dur-quick) var(--ease); }
+.dots circle:focus-visible { outline: 2px solid var(--marine); outline-offset: 2px; }
+
+.brush .selection {
+  fill: var(--marine);
+  fill-opacity: 0.08;
+  stroke: var(--marine);
+  stroke-opacity: 0.5;
+}
+
+/* Language card: glass, because the scatter is genuinely behind it. */
+.lang-card {
+  position: absolute;
+  width: 260px;
+  padding: var(--s-3) var(--s-4);
+  z-index: 10;
+  pointer-events: none;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-edge);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-inset), var(--glass-shadow);
+}
+.lang-card h3 { font-size: var(--t-16); }
+.lang-card .card-sub { margin-top: 2px; font-size: var(--t-12); color: var(--ink-2); }
+.lang-card dl { margin: var(--s-3) 0 0; display: grid; gap: 2px; }
+.lang-card dl div { display: flex; justify-content: space-between; gap: var(--s-3); }
+.lang-card dt { font-size: var(--t-12); color: var(--ink-2); }
+.lang-card dd { margin: 0; font-size: var(--t-12); }
+
+/* Below 720px the scatter becomes a sorted bar list. Squeezing 200 dots into a
+   phone would be worse than not shipping it. */
+.bar-list .bars { list-style: none; margin: var(--s-4) 0 0; padding: 0; display: grid; gap: var(--s-2); }
+.bar-list li { display: grid; grid-template-columns: 8.5rem 1fr 3.5rem; align-items: center; gap: var(--s-2); }
+.bar-name { font-size: var(--t-13); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { height: 10px; background: color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 2px; overflow: hidden; }
+.bar-fill { display: block; height: 100%; border-radius: 2px; }
+.bar-value { font-size: var(--t-12); text-align: right; color: var(--ink-2); }
+
+@media (max-width: 960px) {
+  .scatter-figure { margin-left: calc(-1 * var(--s-4)); padding-left: var(--s-4); }
+}
+@media (max-width: 520px) {
+  .bar-list li { grid-template-columns: 6.5rem 1fr 3rem; }
+}

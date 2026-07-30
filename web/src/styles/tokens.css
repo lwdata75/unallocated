@@ -1,0 +1,132 @@
+/* Design tokens. Cool neutrals, one interactive colour, one data ramp. */
+
+:root {
+  /* Surfaces and ink */
+  --field-0: #e9ecf0;   /* cool paper, page base */
+  --field-1: #f4f6f8;   /* raised */
+  --ink: #12151c;       /* blue-black */
+  --ink-2: #4d5766;     /* secondary; darkened from #5A6472 to clear 4.5:1 on --field-0 */
+  --edge: #c3cad4;      /* hairlines */
+  --marine: #0b528f;    /* interactive; darkened from #0F5FA6 to clear 4.5:1 on --field-0 */
+  --marine-plain: #0f5fa6; /* the spec value, for large text and non-text strokes */
+
+  /* Diverging data ramp, anchored so 1.0x reads as neutral parity */
+  --ramp-1_0: #2e9e8f;
+  --ramp-1_4: #8fbba8;
+  --ramp-2_0: #dfcb8c;
+  --ramp-3_0: #d2814a;
+  --ramp-5_0: #b04a32;
+  --ramp-8_0: #6e2437;
+
+  --surface: var(--field-1);
+
+  /* Glass. Only legitimate where real content sits behind it. */
+  --glass-bg: color-mix(in srgb, var(--surface) 62%, transparent);
+  --glass-blur: blur(20px) saturate(1.35);
+  --glass-edge: 1px solid color-mix(in srgb, var(--edge) 40%, transparent);
+  --glass-inset: inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
+  --glass-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent);
+
+  /* Type */
+  --display: "Archivo", system-ui, sans-serif;
+  --ui: "Instrument Sans", system-ui, sans-serif;
+  --data: "Martian Mono", ui-monospace, monospace;
+
+  --t-12: 0.75rem;
+  --t-13: 0.8125rem;
+  --t-15: 0.9375rem;
+  --t-16: 1rem;
+  --t-20: 1.25rem;
+  --t-28: 1.75rem;
+  --t-44: 2.75rem;
+  --t-64: 4rem;
+
+  /* Space */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 72px;
+
+  --rail-w: 256px;
+  --radius: 8px;
+  --radius-sm: 4px;
+
+  /* Motion. One orchestrated moment; everything else is 120ms. */
+  --dur-tile: 180ms;
+  --dur-stagger: 12ms;
+  --dur-quick: 120ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --field-0: #12151c;
+    --field-1: #1a1f29;
+    --ink: #e9ecf0;
+    --ink-2: #98a3b3;
+    --edge: #333c4a;
+    --marine: #6fb3ef;
+    --marine-plain: #6fb3ef;
+
+    /* Ramp lightened ~12% so it holds against the dark field */
+    --ramp-1_0: #45b3a4;
+    --ramp-1_4: #a4ccb9;
+    --ramp-2_0: #ead8a0;
+    --ramp-3_0: #e0955f;
+    --ramp-5_0: #c66048;
+    --ramp-8_0: #90384f;
+
+    --glass-inset: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
+    --glass-shadow: 0 1px 3px color-mix(in srgb, #000 40%, transparent);
+  }
+}
+
+/* The viewer's explicit toggle must win over the media query in both
+   directions, so these carry the same declarations with higher specificity. */
+:root[data-theme="light"] {
+  --field-0: #e9ecf0;
+  --field-1: #f4f6f8;
+  --ink: #12151c;
+  --ink-2: #4d5766;
+  --edge: #c3cad4;
+  --marine: #0b528f;
+  --marine-plain: #0f5fa6;
+  --ramp-1_0: #2e9e8f;
+  --ramp-1_4: #8fbba8;
+  --ramp-2_0: #dfcb8c;
+  --ramp-3_0: #d2814a;
+  --ramp-5_0: #b04a32;
+  --ramp-8_0: #6e2437;
+  --glass-inset: inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
+  --glass-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+:root[data-theme="dark"] {
+  --field-0: #12151c;
+  --field-1: #1a1f29;
+  --ink: #e9ecf0;
+  --ink-2: #98a3b3;
+  --edge: #333c4a;
+  --marine: #6fb3ef;
+  --marine-plain: #6fb3ef;
+  --ramp-1_0: #45b3a4;
+  --ramp-1_4: #a4ccb9;
+  --ramp-2_0: #ead8a0;
+  --ramp-3_0: #e0955f;
+  --ramp-5_0: #c66048;
+  --ramp-8_0: #90384f;
+  --glass-inset: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
+  --glass-shadow: 0 1px 3px color-mix(in srgb, #000 40%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-tile: 0ms;
+    --dur-stagger: 0ms;
+    --dur-quick: 0ms;
+  }
+}

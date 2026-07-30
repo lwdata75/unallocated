@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The English discount — what tokenizers charge every other language</title>
+    <meta
+      name="description"
+      content="A data study on tokenizer fertility across 204 languages. The same sentence costs more tokens in every language than in English, and most of that surcharge is a choice rather than a property of the language."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Three tiles of increasing count: the site's argument at 16px. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23E9ECF0'/%3E%3Crect x='2' y='3' width='11' height='2.5' fill='%232E9E8F'/%3E%3Crect x='2' y='6.75' width='5' height='2.5' fill='%23DFCB8C'/%3E%3Crect x='7.5' y='6.75' width='5.5' height='2.5' fill='%23DFCB8C'/%3E%3Crect x='2' y='10.5' width='2.5' height='2.5' fill='%23B04A32'/%3E%3Crect x='5' y='10.5' width='2.5' height='2.5' fill='%23B04A32'/%3E%3Crect x='8' y='10.5' width='2.5' height='2.5' fill='%23B04A32'/%3E%3Crect x='11' y='10.5' width='2' height='2.5' fill='%23B04A32'/%3E%3C/svg%3E"
+    />
+    <!-- UI faces block the first paint: three families, a few KB. The
+         per-script faces are separate stylesheets, requested by src/lib/fonts.ts
+         only for scripts actually on screen. -->
+    <link rel="stylesheet" href="/fonts/fonts-ui.css" />
+    <!-- fonts:preload -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/v25-d9e8c29fdd34.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/v4-2ee17598a98d.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/v6-bb677c9c5cf5.woff2" crossorigin />
+    <!-- /fonts:preload -->
+    <link rel="preload" href="/data/samples.json" as="fetch" crossorigin />
+    <link rel="preload" href="/data/languages.json" as="fetch" crossorigin />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the data</a>
+    <!-- The shell is static so the rail paints on the first frame rather than
+         after languages.json lands. Only the tokenizer list and the three
+         sections are filled in by script. -->
+    <div id="app">
+      <div class="layout">
+        <aside class="rail">
+          <div class="masthead">
+            <h1>The English discount</h1>
+            <p>What every other language pays for a vocabulary built on English.</p>
+          </div>
+
+          <nav class="rail-group" aria-label="Sections">
+            <span class="rail-label">Sections</span>
+            <ul class="nav-list">
+              <li><a href="#comparator">The comparator</a></li>
+              <li><a href="#scatter">The scatter</a></li>
+              <li><a href="#methodology">Methodology</a></li>
+            </ul>
+          </nav>
+
+          <!-- role=group sits on the wrapper, not the <ul>: overriding a list's
+               implicit role orphans its list items in the accessibility tree. -->
+          <div class="rail-group" role="group" aria-labelledby="tok-label">
+            <span class="rail-label" id="tok-label">Tokenizer</span>
+            <ul class="tok-list"></ul>
+            <p class="rail-hint" data-role="tok-note"></p>
+          </div>
+
+          <button type="button" class="theme-btn" data-role="theme">Switch theme</button>
+        </aside>
+
+        <main class="field" id="main">
+          <section class="section" id="comparator" aria-busy="true"></section>
+          <section class="section" id="scatter" aria-busy="true"></section>
+          <section class="section" id="methodology" aria-busy="true"></section>
+        </main>
+      </div>
+    </div>
+    <noscript>
+      <p style="padding: 2rem; max-width: 60ch">
+        This study is an interactive comparison and needs JavaScript. The
+        underlying measurements, the full method and every caveat are in the
+        repository at
+        <a href="https://github.com/lwdata75/Flores">github.com/lwdata75/Flores</a>.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

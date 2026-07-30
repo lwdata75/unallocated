@@ -1,0 +1,242 @@
+/* View 1 — the comparator.
+
+   Columns run vertically and tokens stack downward, so a column's height *is*
+   its cost. A single hairline is drawn at the height of the English column and
+   extended across all of them: English stops at the line, everything else
+   overshoots it. That parity line is the signature element and carries the
+   whole argument without a word of copy.                                     */
+
+.tile-strip {
+  /* Full-bleed: cancels the field's left padding so columns pass under the
+     rail's glass when the strip scrolls horizontally. */
+  margin-left: calc(-1 * (var(--rail-w) + var(--s-6)));
+  padding-left: calc(var(--rail-w) + var(--s-6));
+  padding-right: var(--s-6);
+  padding-bottom: var(--s-3);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.columns {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  min-width: min-content;
+  padding-top: var(--s-2);
+}
+
+/* The parity line. Positioned by JS at the English column's tile-field height. */
+.parity-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed color-mix(in srgb, var(--ink) 38%, transparent);
+  pointer-events: none;
+  z-index: 2;
+  transition: transform var(--dur-tile) var(--ease);
+}
+.parity-line::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 0;
+  top: 4px;
+  font-family: var(--data);
+  font-size: var(--t-12);
+  color: var(--ink-2);
+  background: color-mix(in srgb, var(--field-0) 82%, transparent);
+  padding: 0 var(--s-1);
+}
+
+.column {
+  flex: 0 0 auto;
+  width: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.column-head { display: flex; flex-direction: column; gap: var(--s-1); min-height: 74px; }
+
+.column-lang {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.lang-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--s-1) var(--s-2);
+  font-family: var(--ui);
+  font-size: var(--t-13);
+  color: var(--ink);
+  background: var(--field-1);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.column-count {
+  font-family: var(--data);
+  font-size: var(--t-20);
+  letter-spacing: -0.02em;
+}
+.column-count .unit {
+  font-size: var(--t-12);
+  color: var(--ink-2);
+  margin-left: var(--s-1);
+}
+
+/* The ramp colour is carried by a swatch, not by the text background.
+   Mid-tones like sand and rust cannot reach 4.5:1 against either black or
+   white, so setting label text on them would fail the contrast floor at exactly
+   the values that matter most. The swatch encodes; the neutral surface keeps
+   the number readable. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  align-self: flex-start;
+  padding: 1px var(--s-2) 1px var(--s-1);
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--field-1);
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: var(--t-12);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.badge::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--badge-swatch, transparent);
+  /* The outline is what makes the swatch a distinguishable UI component at
+     every ramp stop. The pale stops cannot clear 3:1 as a fill against a light
+     surface, and the dark stops cannot against a dark one. The value is always
+     written out beside it, so colour never carries information alone. */
+  border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.badge[data-parity="true"] {
+  color: var(--ink-2);
+}
+.badge[data-parity="true"]::before {
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--ink) 18%, transparent) 0 2px,
+    transparent 2px 4px
+  );
+}
+
+/* The tile field itself.
+
+   Uniform cells, deliberately. With variable-width tiles a column of wide
+   English word-tokens fills rows as fast as a column of narrow Telugu
+   fragments, so column height stops tracking token count and the parity line
+   starts lying — Telugu at 40 tokens would sit *above* English at 24. A fixed
+   grid makes rows = ceil(tokens / 4), so height is proportional to cost and the
+   comparison is honest. Tokens too long for a cell clip under a fade and carry
+   their full text in the tooltip and the accessible label. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-content: flex-start;
+  gap: 2px;               /* the seam */
+  padding: var(--s-2);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  min-height: 60px;
+}
+
+.tiles[hidden] { display: none; }
+
+.tile {
+  --tile-face: var(--field-1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 2px;
+  overflow: hidden;
+  background: var(--tile-face);
+  border: 1px solid color-mix(in srgb, var(--edge) 85%, transparent);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
+  font-family: var(--data);
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: pre;
+  transition: transform var(--dur-tile) var(--ease),
+              opacity var(--dur-tile) var(--ease);
+}
+
+/* A token too wide for its cell reads from the start and fades out at the
+   right. Centring it would clip both ends, turning "Washington" into "shing". */
+.tile[data-long="true"] {
+  justify-content: flex-start;
+  padding-left: 3px;
+  mask-image: linear-gradient(to right, #000 calc(100% - 8px), transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tile { box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent); }
+}
+:root[data-theme="dark"] .tile { box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent); }
+:root[data-theme="light"] .tile { box-shadow: inset 0 1px 0 color-mix(in srgb, white 45%, transparent); }
+
+/* A token that carries no glyph: byte-level BPE split a character across two
+   tokens, and this is the continuation half. You are paying for it. Shown as a
+   dotted circle rather than silently duplicating or dropping the character. */
+.tile[data-empty="true"] {
+  --tile-face: color-mix(in srgb, var(--ink) 7%, transparent);
+  color: var(--ink-2);
+  border-style: dashed;
+  mask-image: none;
+}
+.tile[data-empty="true"]::after { content: "\25CC"; font-size: 10px; opacity: 0.75; }
+
+/* Leading spaces are part of the token; make them visible as a seam, not a gap. */
+.tile[data-space="true"] { --tile-face: color-mix(in srgb, var(--ink) 3%, transparent); }
+
+.tiles[data-loading="true"] { opacity: 0.45; }
+
+/* ------------------------------------------------------------ free text */
+
+.freetext { max-width: 68ch; margin-top: var(--s-5); display: flex; flex-direction: column; gap: var(--s-2); }
+
+.freetext label { font-size: var(--t-13); font-weight: 500; }
+
+.freetext textarea {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  padding: var(--s-3);
+  font-family: var(--ui);
+  font-size: var(--t-15);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--field-1);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+}
+.freetext textarea::placeholder { color: var(--ink-2); }
+
+.freetext-status { font-size: var(--t-12); color: var(--ink-2); min-height: 1.2em; }
+
+@media (max-width: 960px) {
+  .tile-strip {
+    margin-left: calc(-1 * var(--s-4));
+    padding-left: var(--s-4);
+    padding-right: var(--s-4);
+  }
+}
+@media (max-width: 420px) {
+  .tile-strip { margin-left: calc(-1 * var(--s-3)); padding-left: var(--s-3); padding-right: var(--s-3); }
+  .column { width: 148px; }
+}

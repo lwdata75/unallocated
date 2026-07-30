@@ -64,6 +64,47 @@ sentences in 25 showcase languages, pre-tokenised against all eight tokenizers
 with character offsets, so the hero renders token tiles without loading a
 tokenizer in the browser.
 
+## Running the site
+
+```
+cd web
+npm install
+npm run fonts     # self-hosts every face; writes public/fonts/ (~13 MB, once)
+npm run dev
+```
+
+Vite + TypeScript, vanilla DOM, D3 for scales and the scatter. No framework: the
+interaction surface is a tokenizer selector, five language pickers and a brush.
+
+Two views ship. **The comparator** puts the same sentence in five languages side
+by side as physical token tiles; a dashed line drawn at the English column's
+height turns every other column into visible surcharge. **The scatter** plots
+cost against speaker population, and the shape is the argument.
+
+Fonts are self-hosted with no CDN dependency, split per writing system and
+fetched only for scripts actually on screen. Free-text tokenization lazy-loads
+one tokenizer on demand — the three OpenAI families and Llama-3 — and never
+more than one.
+
+### Verifying
+
+```
+npm run build && npm run preview -- --port 4321 &
+npm run verify        # glyph coverage, re-tiling, share card, 380px, contrast
+npm run lighthouse
+```
+
+`npm run shots` drives the installed Chrome through playwright-core, so there is
+no browser download. It fails the build if any of the 25 showcase languages
+falls back to a system font, if switching tokenizers stops re-tiling, if the
+share card is not exactly 1200×630, or if the page overflows horizontally at
+380px. `npm run contrast` measures every text pair against its rendered
+background — compositing through the glass surfaces — and requires 4.5:1.
+
+Last measured: **Lighthouse performance 93, accessibility 100, best practices
+100**; all 25 showcase scripts rendering from self-hosted faces; every contrast
+pair passing.
+
 ## Caveats
 
 FLORES is translationese; fertility is a proxy and the context-window cost is

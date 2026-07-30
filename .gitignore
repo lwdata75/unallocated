@@ -15,6 +15,9 @@ node_modules/
 web/dist/
 .vite/
 
+# verification output: screenshots and Lighthouse reports, regenerable
+web/scripts/shots/
+
 # os
 Thumbs.db
 .DS_Store
