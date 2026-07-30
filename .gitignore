@@ -1,0 +1,20 @@
+# raw corpora, tokenizer files, intermediate caches.
+# Anchored: an unanchored `data/` would also swallow web/public/data, which is
+# generated output but IS committed so the site can be built without the corpora.
+/data/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+web/dist/
+.vite/
+
+# os
+Thumbs.db
+.DS_Store
