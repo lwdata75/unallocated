@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /** Shapes of the pre-aggregated JSON the pipeline exports, plus the loader. */
 
 export type CorpusKey = "flores" | "massive";
@@ -54,9 +55,49 @@ export interface SamplesFile {
   sentences: SampleSentence[];
 }
 
+/** One generated figure, with the referent that makes it checkable. */
+export interface Figure {
+  key: string;
+  text: string;
+  claim: string;
+  statistic: string;
+  referent: Record<string, unknown>;
+  value: number | null;
+  values: Record<string, number>;
+}
+
+export interface HeadlineFile {
+  generated: string;
+  note: string;
+  figures: Record<string, Figure>;
+}
+
+export interface SourceRow {
+  key: string;
+  kind: "corpus" | "tokenizer" | "font";
+  canonical: string;
+  resolved: string;
+  revision: string;
+  licence: string;
+  spdx: string;
+  retrieved: string;
+  substituted: boolean;
+  reason: string;
+  verified_against: string;
+  notes: string;
+}
+
+export interface SourcesFile {
+  generated: string;
+  note: string;
+  sources: SourceRow[];
+}
+
 export interface Dataset {
   languages: LanguagesFile;
   samples: SamplesFile;
+  headline: HeadlineFile;
+  sources: SourcesFile;
   byCode: Map<string, Language>;
 }
 
@@ -67,12 +108,14 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 export async function loadDataset(): Promise<Dataset> {
-  const [languages, samples] = await Promise.all([
+  const [languages, samples, headline, sources] = await Promise.all([
     getJson<LanguagesFile>("data/languages.json"),
     getJson<SamplesFile>("data/samples.json"),
+    getJson<HeadlineFile>("data/headline.json"),
+    getJson<SourcesFile>("data/sources.json"),
   ]);
   const byCode = new Map(languages.languages.map((l) => [l.code, l]));
-  return { languages, samples, byCode };
+  return { languages, samples, headline, sources, byCode };
 }
 
 /**

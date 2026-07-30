@@ -39,6 +39,30 @@
   border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
+/* A generated figure. The dotted underline signals that hovering or focusing it
+   reveals the statistic and sample the number refers to — a number without its
+   referent is not checkable. */
+.fig {
+  border-bottom: 1px dotted color-mix(in srgb, var(--ink) 45%, transparent);
+  cursor: help;
+}
+.fig-missing { color: var(--ramp-5_0); border-bottom-style: solid; }
+
+.sources { display: grid; gap: var(--s-3); }
+.sources code {
+  font-family: var(--data);
+  font-size: 0.85em;
+  padding: 0 3px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border-radius: 3px;
+}
+.source-evidence {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--t-13);
+  color: var(--ink-2);
+}
+
 .colophon {
   margin-top: var(--s-5);
   padding-top: var(--s-3);
