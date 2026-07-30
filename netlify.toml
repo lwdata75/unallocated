@@ -1,6 +1,8 @@
 [build]
   base = "web"
-  command = "npm run build"
+  # Third-party assets whose licences do not permit committing them here are
+  # fetched at deploy time instead. See NOTICE.md.
+  command = "npm run assets && npm run build"
   publish = "dist"
 
 [build.environment]

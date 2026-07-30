@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Visual verification. Drives the installed Chrome through playwright-core, so
  * there is no browser download and no extra CI dependency.

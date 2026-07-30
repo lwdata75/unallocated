@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Languages permitted to score below 0.85x fertility, each with a reason.
 
 A genuinely sub-English result is interesting, but it is more often a bug — a

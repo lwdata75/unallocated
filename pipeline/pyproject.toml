@@ -1,7 +1,7 @@
 [project]
-name = "token-tax-pipeline"
+name = "unallocated-pipeline"
 version = "0.1.0"
-description = "Tokenizer fertility measurement across languages for The English Discount"
+description = "Unallocated: what tokenizer vocabularies were spent on, and what they weren't"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "tiktoken>=0.8",

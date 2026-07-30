@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Per-language metadata: script, family, macro-region, speaker count.
 
 Sources, chosen for licence safety and citability:
@@ -33,7 +34,7 @@ GLOTTOLOG_LICENCE = "CC-BY-4.0"
 
 WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
 WIKIDATA_LICENCE = "CC0-1.0"
-USER_AGENT = "token-tax/0.1 (https://github.com/lwdata75/Flores)"
+USER_AGENT = "unallocated/1.0 (https://github.com/lwdata75/unallocated)"
 
 SPEAKERS_QUERY = """
 SELECT ?iso (MAX(?count) AS ?speakers) WHERE {

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Load and align FLORES-200 and MASSIVE.
 
 Both corpora are sentence-aligned: row *n* in Telugu carries the same meaning as

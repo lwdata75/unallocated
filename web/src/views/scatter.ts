@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * View 2 — the scatter. The frame people screenshot.
  *

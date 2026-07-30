@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Per-script font loading.
  *

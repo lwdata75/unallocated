@@ -1,4 +1,30 @@
-# Build spec — "The English Discount"
+<!-- SPDX-License-Identifier: MIT -->
+
+> **This is the original build brief, preserved verbatim.**
+>
+> It is kept deliberately: for a study whose whole argument is provenance, the
+> specification the work was built from is part of the record, and editing it
+> after the fact would falsify that record.
+>
+> Read it as a historical document, not as current documentation. Two things
+> have changed since it was written:
+>
+> 1. **The name.** "The English Discount" was the working title. The project
+>    shipped as **Unallocated**, because the finding turned out to be about
+>    which languages a vocabulary was *spent* on rather than about English being
+>    discounted. Every occurrence of the old title below is the working title,
+>    not the project name.
+> 2. **Several sources.** The brief assumed HuggingFace paths for the corpora
+>    and tokenizers. Four of those turned out to be gated or defunct. What was
+>    actually used, and why, is recorded in `pipeline/sources.toml` and
+>    `METHODOLOGY.md`.
+>
+> Current documentation: [`README.md`](../README.md),
+> [`METHODOLOGY.md`](../METHODOLOGY.md).
+
+---
+
+# Build spec — "The English Discount" (working title)
 
 A data study on tokenizer fertility across languages. Paste this whole file into Claude Code as the opening brief.
 

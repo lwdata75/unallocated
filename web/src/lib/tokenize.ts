@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Client-side tokenization, for free text only.
  *

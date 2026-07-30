@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import "./styles/tokens.css";
 import "./styles/app.css";
 import "./styles/comparator.css";
@@ -14,7 +15,7 @@ import { mountComparator } from "./views/comparator";
 import { mountScatter } from "./views/scatter";
 import { mountMethodology } from "./views/methodology";
 
-const THEME_KEY = "token-tax-theme";
+const THEME_KEY = "unallocated-theme";
 
 async function boot(): Promise<void> {
   restoreTheme();

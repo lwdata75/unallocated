@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /** Number formatting. Numbers get units and a comparison, and no fake precision. */
 
 /** `3.9` -> `3.9x`, `13.74` -> `14x`. The corpus does not support more digits. */

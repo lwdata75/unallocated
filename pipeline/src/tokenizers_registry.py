@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """One tokenizer per family, behind a uniform interface.
 
 The study compares tokenizer *families*, never model versions — every label in

@@ -1,10 +1,12 @@
 {
-  "name": "token-tax-web",
+  "name": "unallocated-web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "fonts": "node scripts/fetch-fonts.mjs",
+    "tokenizers": "node scripts/fetch-tokenizers.mjs",
+    "assets": "node scripts/fetch-tokenizers.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Fertility, floor and neglect.
 
 Fertility is computed **per aligned sentence pair** and then medianed. Dividing

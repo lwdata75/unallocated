@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * The one data ramp. Diverging, anchored at 1.0x so "at parity" reads as
  * visually neutral rather than as the good end of a good-to-bad scale.

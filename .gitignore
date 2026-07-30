@@ -21,3 +21,9 @@ web/scripts/shots/
 # os
 Thumbs.db
 .DS_Store
+
+# Fetched at build time, not committed: the Llama-3 tokenizer is distributed
+# under Meta's Community License, and committing it here would be
+# redistribution under terms incompatible with this repo's MIT licence.
+# See web/scripts/fetch-tokenizers.mjs and NOTICE.md.
+web/public/tokenizers/

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /** Shared UI state. Small enough that a framework would buy nothing. */
 
 export interface AppState {

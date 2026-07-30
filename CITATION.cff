@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+title: "Unallocated: what tokenizer vocabularies were spent on, and what they weren't"
+message: >-
+  If you use this study, its data, or its measurements, please cite it as below,
+  and cite the underlying corpora separately (see NOTICE.md).
+type: dataset
+authors:
+  - family-names: Weiss
+    given-names: Leo
+repository-code: "https://github.com/lwdata75/unallocated"
+abstract: >-
+  A measurement of tokenizer fertility across 204 languages and eight tokenizer
+  families, using the sentence-aligned FLORES-200 and MASSIVE corpora. Token
+  cost is computed per aligned sentence pair against English, then decomposed
+  into a floor — the cost inherent to a writing system, taken as the best any
+  measured tokenizer achieves — and neglect, the excess above that floor
+  attributable to vocabulary that was never allocated to the language. The
+  central result is that multilingual vocabulary allocation is scoped rather
+  than general: BLOOM's median fertility across all 204 languages is marginally
+  worse than a contemporary English-centric encoding's, while being dramatically
+  better on the languages its training corpus covered. Provenance for every
+  input is machine-recorded and verified on each run.
+keywords:
+  - tokenization
+  - multilingual NLP
+  - language equity
+  - FLORES-200
+  - MASSIVE
+  - subword vocabularies
+license: MIT
+license-url: "https://github.com/lwdata75/unallocated/blob/main/LICENSE"
+date-released: 2026-07-30
+version: "1.0.0"
+references:
+  - type: dataset
+    title: "FLORES-200 evaluation benchmark"
+    year: 2022
+    license: CC-BY-SA-4.0
+    notes: >-
+      Derived measurements in web/public/data are licensed CC-BY-SA-4.0 as a
+      consequence. See NOTICE.md.
+    authors:
+      - name: "NLLB Team, Meta AI"
+  - type: dataset
+    title: >-
+      MASSIVE: A 1M-Example Multilingual Natural Language Understanding Dataset
+      with 51 Typologically-Diverse Languages
+    year: 2022
+    license: CC-BY-4.0
+    authors:
+      - name: "Amazon Science"
+  - type: database
+    title: Glottolog
+    license: CC-BY-4.0
+    authors:
+      - name: "Max Planck Institute for Evolutionary Anthropology"

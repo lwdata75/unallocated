@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Contrast audit. Every colour pair has to meet 4.5:1.
  *

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """The validation gates from spec section 3.4.
 
 These are gates, not diagnostics: the pipeline fails rather than exports if any

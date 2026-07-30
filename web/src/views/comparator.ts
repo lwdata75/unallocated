@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * View 1 — the comparator. The hero.
  *

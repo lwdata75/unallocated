@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Shared paths and constants for the pipeline."""
 
 from __future__ import annotations
