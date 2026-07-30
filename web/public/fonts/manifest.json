@@ -1,0 +1,194 @@
+{
+  "generated": "2026-07-30",
+  "source": "https://fonts.googleapis.com/css2",
+  "licence": "SIL Open Font License 1.1",
+  "spdx": "OFL-1.1",
+  "families": [
+    {
+      "key": "ui",
+      "spec": "Archivo:wght@600 + Instrument+Sans:wght@400;500 + Martian+Mono:wght@400",
+      "css": "fonts-ui.css",
+      "sha256": "84638e0c6fe24a1698031c96c6e319885a6137a48773dd8bedac55e40b973383"
+    },
+    {
+      "key": "Grek",
+      "spec": "Noto Sans",
+      "css": "script-Grek.css",
+      "sha256": "8b570576fff6cfe35d41e0db48b4fc04784a223e50973720bc53e92a83066eb2"
+    },
+    {
+      "key": "Cyrl",
+      "spec": "Noto Sans",
+      "css": "script-Cyrl.css",
+      "sha256": "41d88d0a8d5fcfadcbfe3c3751a24e4a65f89bb8b8c0842e697125dfe095d08f"
+    },
+    {
+      "key": "Hebr",
+      "spec": "Noto Sans Hebrew",
+      "css": "script-Hebr.css",
+      "sha256": "0c39f5894059932a451b62d422eca78bdbef16ed9bbf7ce895f319371631c494"
+    },
+    {
+      "key": "Arab",
+      "spec": "Noto Sans Arabic",
+      "css": "script-Arab.css",
+      "sha256": "7fe9db7ad5b8699eb9317bb7a44ee144e0370eb3637bea3c3f638c85898b94bd"
+    },
+    {
+      "key": "Deva",
+      "spec": "Noto Sans Devanagari",
+      "css": "script-Deva.css",
+      "sha256": "73d8b2d5cf4b1c59d40498ac994849d2e577f9a055070da27ff2326e0c95b274"
+    },
+    {
+      "key": "Beng",
+      "spec": "Noto Sans Bengali",
+      "css": "script-Beng.css",
+      "sha256": "7c9a6a0ec72bd85bbf81a674e99cd4c779608a80c2df3d0d49dd9e99c5dff9fb"
+    },
+    {
+      "key": "Telu",
+      "spec": "Noto Sans Telugu",
+      "css": "script-Telu.css",
+      "sha256": "d332a531afd9b7163670fccd2f3d8184a63bc7a22398fb499368de3d5cd92d55"
+    },
+    {
+      "key": "Taml",
+      "spec": "Noto Sans Tamil",
+      "css": "script-Taml.css",
+      "sha256": "64bfd64d20d5f424fdae07450f539fa533ef56a5cd1c3d8bce8259224f2d426a"
+    },
+    {
+      "key": "Knda",
+      "spec": "Noto Sans Kannada",
+      "css": "script-Knda.css",
+      "sha256": "8401d6f16adc3b8444c98c605145b66079cce9cee274fc53be16ae771d34ad51"
+    },
+    {
+      "key": "Mlym",
+      "spec": "Noto Sans Malayalam",
+      "css": "script-Mlym.css",
+      "sha256": "872a8fdba3ec72424629cd1cb06863808934a0d2b0cbad48fce2578858eddd87"
+    },
+    {
+      "key": "Guru",
+      "spec": "Noto Sans Gurmukhi",
+      "css": "script-Guru.css",
+      "sha256": "09b44e6a217125ea76d81f8c4dee8ada22c06202a3197756f74f02836cbd0506"
+    },
+    {
+      "key": "Gujr",
+      "spec": "Noto Sans Gujarati",
+      "css": "script-Gujr.css",
+      "sha256": "df23daa3aca04633df4e8619a7e02292fe95b0c6382dabc4521a5a8d3606f9af"
+    },
+    {
+      "key": "Orya",
+      "spec": "Noto Sans Oriya",
+      "css": "script-Orya.css",
+      "sha256": "a888c281213e4f574b244ca0527c2a58c4d6a87309bd2ebae9d674ac792cd98d"
+    },
+    {
+      "key": "Sinh",
+      "spec": "Noto Sans Sinhala",
+      "css": "script-Sinh.css",
+      "sha256": "3633b573037aee6698bded57f78523eacd31cdab0e3604ac6ca7e67d2f54acc8"
+    },
+    {
+      "key": "Thai",
+      "spec": "Noto Sans Thai",
+      "css": "script-Thai.css",
+      "sha256": "b0e5098dd38182511bd2882bf82ecd6f2d0db40b7ea2cdce54ee5f792be281ae"
+    },
+    {
+      "key": "Laoo",
+      "spec": "Noto Sans Lao",
+      "css": "script-Laoo.css",
+      "sha256": "56f9e06b38dfa4fb2754962a5b9902b76440d3d492aa07c16fd3c85bd55cac0e"
+    },
+    {
+      "key": "Khmr",
+      "spec": "Noto Sans Khmer",
+      "css": "script-Khmr.css",
+      "sha256": "1f44d505b06ec1c9381904e2bff54b7445adfbfb0a9133809b56a0b67036cf36"
+    },
+    {
+      "key": "Mymr",
+      "spec": "Noto Sans Myanmar",
+      "css": "script-Mymr.css",
+      "sha256": "ec90405f8322dc6beb537d6666ff94dc1a7e1657169280621d94a05f4b5464c1"
+    },
+    {
+      "key": "Ethi",
+      "spec": "Noto Sans Ethiopic",
+      "css": "script-Ethi.css",
+      "sha256": "dffe32b599b5a236a248e4b9288dc2d077fa2eb04728c085006fd61d342d4e48"
+    },
+    {
+      "key": "Armn",
+      "spec": "Noto Sans Armenian",
+      "css": "script-Armn.css",
+      "sha256": "b987298b14041409a72613060d19e24077697564617e92e78527053f4d95b044"
+    },
+    {
+      "key": "Geor",
+      "spec": "Noto Sans Georgian",
+      "css": "script-Geor.css",
+      "sha256": "0973f0cec2dea2e07e451d1429a3d8cc560ee0bb9924a14f61e83b29c42e41d1"
+    },
+    {
+      "key": "Tibt",
+      "spec": "Noto Serif Tibetan",
+      "css": "script-Tibt.css",
+      "sha256": "06d3ef2eac6ec9361789d269962b27ef24d11075111995c129f1bbceb4ade402"
+    },
+    {
+      "key": "Olck",
+      "spec": "Noto Sans Ol Chiki",
+      "css": "script-Olck.css",
+      "sha256": "6e3e3b566873fe19c159658ed506462410f565c1aa2e2d98f2bb23867ca1bc6b"
+    },
+    {
+      "key": "Tfng",
+      "spec": "Noto Sans Tifinagh",
+      "css": "script-Tfng.css",
+      "sha256": "89736b170f4c4cc282864fc5b2482f21e770708cd8e1d633c7e2e18630812bde"
+    },
+    {
+      "key": "Adlm",
+      "spec": "Noto Sans Adlam",
+      "css": "script-Adlm.css",
+      "sha256": "594bfa617f574a88e6d90b7bd517f031c633cd4b3882f2c058c69a73dd37b7b4"
+    },
+    {
+      "key": "Cans",
+      "spec": "Noto Sans Canadian Aboriginal",
+      "css": "script-Cans.css",
+      "sha256": "7eb69d5fd7d31b258c1785e4425834b04640467e20c3fd2556cf057e86baae5a"
+    },
+    {
+      "key": "Jpan",
+      "spec": "Noto Sans JP",
+      "css": "script-Jpan.css",
+      "sha256": "acaffd485f56fbbb4202acf50b9a6769a7d428107b624b8d2d1ba90bd2daf28f"
+    },
+    {
+      "key": "Hang",
+      "spec": "Noto Sans KR",
+      "css": "script-Hang.css",
+      "sha256": "3d8e25fef84faa99168963b939f4e85aabaa7f2b2c429a4cea4848d09e948d65"
+    },
+    {
+      "key": "Hans",
+      "spec": "Noto Sans SC",
+      "css": "script-Hans.css",
+      "sha256": "981fb6410a9c9a1a57902bf31fdfb837a09e490258130bcb6818e9d72981e31a"
+    },
+    {
+      "key": "Hant",
+      "spec": "Noto Sans TC",
+      "css": "script-Hant.css",
+      "sha256": "f1e4e8995d4147ce4917b5bbe96b8a38c8593cb2fdbb79f78c380991b12e23e0"
+    }
+  ]
+}

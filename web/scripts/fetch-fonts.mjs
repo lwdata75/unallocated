@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /**
  * Self-host every font the site uses. Run once: `npm run fonts`.
  *
@@ -169,6 +170,34 @@ async function main() {
     process.stdout.write("\nwarning: no <!-- fonts:preload --> markers in index.html\n");
   }
   await writeFile(INDEX_HTML, updated, "utf8");
+
+  // Provenance manifest. pipeline/src/refresh_sources.py reads this so font
+  // rows in sources.toml are generated rather than hand-typed. Hashing the CSS
+  // transitively covers the woff2 bytes, because their filenames are
+  // content-hashed by localise() above.
+  const { createHash: hashOf } = await import("node:crypto");
+  const { readFileSync } = await import("node:fs");
+  const cssSha = (p) => hashOf("sha256").update(readFileSync(p)).digest("hex");
+  const manifest = {
+    generated: new Date().toISOString().slice(0, 10),
+    source: "https://fonts.googleapis.com/css2",
+    licence: "SIL Open Font License 1.1",
+    spdx: "OFL-1.1",
+    families: [
+      { key: "ui", spec: UI_FAMILIES.join(" + "), css: "fonts-ui.css", sha256: cssSha(UI_CSS_OUT) },
+      ...Object.entries(SCRIPT_FAMILIES).map(([code, spec]) => ({
+        key: code,
+        spec: spec.replace(/\+/g, " ").replace(/:wght@.*/, ""),
+        css: `script-${code}.css`,
+        sha256: cssSha(scriptCssPath(code)),
+      })),
+    ],
+  };
+  await writeFile(
+    path.join(OUT_DIR, "manifest.json"),
+    JSON.stringify(manifest, null, 2),
+    "utf8"
+  );
 
   const { statSync } = await import("node:fs");
   process.stdout.write(
