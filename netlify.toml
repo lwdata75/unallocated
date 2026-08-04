@@ -8,9 +8,17 @@
 # in two places.
 [build]
   # `cd web` because the frontend is a subdirectory of a repo that also holds
-  # the Python pipeline. `npm run assets` fetches the third-party files whose
-  # licences do not permit committing them here — see NOTICE.md.
-  command = "cd web && npm run assets && npm run build"
+  # the Python pipeline.
+  #
+  # `npm ci` is explicit, and has to be: Netlify installs dependencies for it
+  # only when it finds a package.json in the *base* directory, and the base is
+  # the repo root, which has none. Without this the build reached Vite with no
+  # node_modules at all and died on `tsc: not found`. `--no-audit --no-fund`
+  # because neither writes anything the deploy log needs.
+  #
+  # `npm run assets` then fetches the third-party tokenizer files whose licences
+  # do not permit committing them here — see NOTICE.md.
+  command = "cd web && npm ci --no-audit --no-fund && npm run assets && npm run build"
   publish = "web/dist"
 
 [build.environment]
