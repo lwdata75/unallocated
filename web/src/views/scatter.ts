@@ -57,7 +57,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
 
   root.innerHTML = `
     <div class="section-head">
-      <p class="step-mark">Step 3 of 4 · the whole population</p>
+      <p class="step-mark">Step 5 of 7 · the whole population</p>
       <h2>What each language costs, against how many people speak it</h2>
       <p class="caption">
         Five languages made the case. Here are all ${languages.length}. Every dot

@@ -71,7 +71,7 @@ export function mountClaim(root: HTMLElement, data: Dataset): void {
   root.innerHTML = `
     <div class="editorial">
       <div class="section-head">
-        <p class="step-mark">Step 2 of 4 · the argument</p>
+        <p class="step-mark">Step 3 of 7 · the argument</p>
         <h2>Most of the surcharge is a choice</h2>
         <p class="caption">
           The tiles show that other languages cost more. They do not, on their

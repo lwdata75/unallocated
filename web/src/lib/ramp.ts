@@ -39,6 +39,53 @@ export function rampStops(): Array<{ value: number; colour: string }> {
   return STOPS.map((value) => ({ value, colour: scale(value) }));
 }
 
-// Note: nothing sets text on a ramp colour. The mid-tones (sand, rust) cannot
-// reach 4.5:1 against either black or white, so badges and legends carry the
-// ramp as a swatch beside neutral-on-neutral text instead.
+// Badges and legends carry the ramp as a swatch beside neutral-on-neutral text,
+// because no *single* ink colour clears 4.5:1 against the whole ramp — the
+// mid-tones are too light for white and the ends too dark for black.
+//
+// The heatmap is the one place that has to set text on a ramp colour, and it can
+// only do that by choosing the ink per cell. That is what follows.
+
+/** sRGB relative luminance, per WCAG 2.1. */
+function luminance(rgb: [number, number, number]): number {
+  const [r, g, b] = rgb.map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function parseColour(colour: string): [number, number, number] {
+  const parts = colour.match(/[\d.]+/g);
+  if (!parts) return [128, 128, 128];
+  // d3 hands back `rgb(r, g, b)` in 0–255, but a colour that has been through
+  // color-mix comes back as `color(srgb …)` in 0–1.
+  const scaleTo255 = colour.startsWith("color(") ? 255 : 1;
+  return [
+    Number(parts[0]) * scaleTo255,
+    Number(parts[1]) * scaleTo255,
+    Number(parts[2]) * scaleTo255,
+  ];
+}
+
+/**
+ * Black or white, whichever has more contrast against the given fill.
+ *
+ * Chosen per cell rather than fixed for the whole ramp, which is what makes text
+ * on a ramp colour legitimate here.
+ *
+ * The extremes are deliberate. A softened near-black (#0d1016) reads better on
+ * the pale end but does not clear 4.5:1 anywhere in the ramp's rust zone, where
+ * white does not clear it either — the exhaustive cell pass in
+ * scripts/contrast.mjs measured 4.41:1 there and failed the build. With true
+ * black and true white the two curves cross at a luminance of 0.179, where both
+ * give 4.58:1, so the worst case anywhere on the ramp still clears the
+ * threshold. It is a narrow margin and it is checked on every rendered cell
+ * rather than trusted.
+ */
+export function readableInk(fill: string): string {
+  const l = luminance(parseColour(fill));
+  const onWhite = 1.05 / (l + 0.05);
+  const onBlack = (l + 0.05) / 0.05;
+  return onWhite > onBlack ? "#ffffff" : "#000000";
+}

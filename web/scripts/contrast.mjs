@@ -31,6 +31,22 @@ const SELECTORS = [
   ".try-this", ".try-this strong",
   ".readout-spread", ".readout-key", ".readout-key strong",
   ".readout-case", ".readout-case strong",
+  // The context window panel.
+  ".control-label", ".seg", '.seg[aria-pressed="true"]', ".seg-unit",
+  ".capacity-name", ".capacity-value", ".capacity-value em",
+  ".capacity-note", ".capacity-note strong",
+  // The allocation matrix and its language card. The coloured cells are not
+  // here: they carry per-cell ink and get their own exhaustive pass below.
+  ".lang-search", ".matrix-count", ".link-btn",
+  ".matrix-tok", ".matrix-vocab", ".matrix-lang", ".matrix-meta", ".matrix-spread",
+  ".lang-detail h3", ".detail-meta", ".detail-name", ".detail-value",
+  ".detail-value em", ".detail-summary", ".detail-summary strong",
+  // The gap chart.
+  ".gap-name", ".gap-name em", ".gap-value", ".gap-value em",
+  ".gaps figcaption", ".gap-tick em",
+  // The expanded methodology.
+  ".process li", ".process strong",
+  ".gates thead th", ".gates tbody th", ".gates tbody td", ".gates caption",
   ".column-count", ".column-count .unit", ".lang-select",
   ".tile", '.tile[data-empty="true"]', ".badge", '.badge[data-parity="true"]',
   ".chip", ".sample-pos", ".freetext label", ".freetext textarea", ".freetext-status",
@@ -115,6 +131,11 @@ async function main() {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(BASE, { waitUntil: "networkidle" });
   await page.waitForSelector(".tile");
+  // The language card only exists once a matrix row has been opened, and a
+  // selector that is never rendered is a selector that is never checked.
+  await page.waitForSelector(".matrix tbody tr");
+  await page.click(".matrix tbody tr");
+  await page.waitForSelector(".lang-detail:not([hidden])");
 
   const failures = [];
   for (const theme of ["light", "dark"]) {
@@ -171,6 +192,51 @@ async function main() {
     const ok = row >= 3;
     if (!ok) failures.push(`${theme} ramp swatch outline: ${row}:1 (needs 3:1)`);
     process.stdout.write(`\n== ${theme} ramp swatch outline\n  ${ok ? "ok  " : "FAIL"} ${row}:1\n`);
+  }
+
+  // The heatmap is the only place on the site that sets text on a ramp colour.
+  // It is allowed to because ramp.ts picks near-black or near-white per cell —
+  // but "picks" is a claim, so every rendered cell is measured, not sampled.
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
+    await page.waitForTimeout(200);
+
+    const worst = await page.evaluate(() => {
+      const parse = (c) => {
+        const m = c.match(/[\d.]+/g);
+        const scale = c.startsWith("color(") ? 255 : 1;
+        return [Number(m[0]) * scale, Number(m[1]) * scale, Number(m[2]) * scale];
+      };
+      const lum = (rgb) => {
+        const [r, g, b] = rgb.map((c) => {
+          const s = c / 255;
+          return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const ratio = (a, b) => {
+        const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+        return (hi + 0.05) / (lo + 0.05);
+      };
+      let low = { r: Infinity, cell: "" };
+      let n = 0;
+      for (const td of document.querySelectorAll(".matrix-cell:not(.is-empty)")) {
+        const cs = getComputedStyle(td);
+        const r = ratio(parse(cs.color), parse(cs.backgroundColor));
+        n += 1;
+        if (r < low.r) {
+          low = { r: Math.round(r * 100) / 100, cell: `${td.closest("tr").querySelector(".matrix-lang").textContent} / ${td.textContent.trim()}` };
+        }
+      }
+      return { ...low, n };
+    });
+
+    const ok = worst.r >= MIN;
+    if (!ok) failures.push(`${theme} matrix cell ink: ${worst.r}:1 at ${worst.cell}`);
+    process.stdout.write(
+      `\n== ${theme} matrix cells (${worst.n} measured, worst shown)\n` +
+      `  ${ok ? "ok  " : "FAIL"} ${String(worst.r).padStart(6)}:1  ${worst.cell}\n`
+    );
   }
 
   // The bar list only exists below 720px, so it needs its own pass.

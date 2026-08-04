@@ -49,7 +49,7 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
   root.innerHTML = `
     <div class="editorial">
       <div class="section-head">
-        <p class="step-mark">Step 4 of 4 · the working</p>
+        <p class="step-mark">Step 7 of 7 · the working</p>
         <h2>Method and limits</h2>
         <p class="caption">
           Every number on this site is generated from the pipeline's exported
@@ -96,6 +96,96 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
         for a language — a stand-in for the cost inherent to its writing system.
         Neglect is everything above that floor.
       </p>
+
+      <h3>How the numbers are produced</h3>
+      <p>
+        Nothing on this site is computed in your browser except the free-text
+        box. Every figure is the output of a pipeline that runs end to end, fails
+        rather than exports when a check does not hold, and writes four JSON files
+        the page then only has to draw. The stages, in order:
+      </p>
+      <ol class="process">
+        <li>
+          <strong>Acquire.</strong> FLORES-200 is downloaded from Meta's own
+          distribution and MASSIVE from Amazon's, as archives, and both are
+          checksummed against pinned hashes before anything is read out of them.
+          Tokenizer files are fetched per family and recorded with the revision
+          they came from. Re-runs work from a local cache, so the pipeline is
+          reproducible offline once primed.
+        </li>
+        <li>
+          <strong>Align.</strong> The corpora are joined on sentence identity, not
+          on row order. MASSIVE is joined on its utterance ids across all 52
+          locales and reduced to the ids present in <em>every</em> locale, then
+          subsampled to ${fmt.tokens(meta.n_sentences.massive)} with a fixed seed
+          so the sample is the same on every run. An assertion then demands equal
+          row counts and identical id sequences across every language, and raises
+          rather than warns: a silent misalignment would compare unrelated
+          sentences and produce numbers that look entirely plausible.
+        </li>
+        <li>
+          <strong>Tokenize.</strong> Each corpus is encoded once per tokenizer,
+          without special tokens — a chat template would add a constant to every
+          count and inflate the languages with the shortest sentences most. Token
+          counts are cached as integer arrays per corpus and tokenizer, which is
+          what makes re-running cheap. Vocabulary size is read off the loaded
+          tokenizer rather than its config file, because the config figure is
+          often padded and would misstate what was actually available.
+        </li>
+        <li>
+          <strong>Aggregate.</strong> Per language and tokenizer: median tokens
+          per sentence, fertility as the median <em>per-pair</em> ratio against
+          English, the 90th percentile of that same ratio, and characters per
+          token. Then per language: the floor across tokenizers, and neglect as
+          the excess above it. Medians throughout, so a handful of pathological
+          sentences cannot drive a result; the p90 is carried alongside because
+          tail cost is what decides whether a document fits a context window.
+        </li>
+        <li>
+          <strong>Gate.</strong> The checks below run as tests <em>before</em>
+          export. A failure stops the build with no JSON written, which is the
+          only arrangement under which a check is worth anything.
+        </li>
+        <li>
+          <strong>Export and re-render.</strong> Four files are written — the
+          measurements, the sample sentences with token boundaries, the quoted
+          figures with their referents, and the provenance record. Then every
+          figure quoted in the documentation is re-rendered from that data and
+          compared against what is committed, so a number cannot drift out of
+          sync with the pipeline that produced it. That check caught a
+          hand-typed multiplier and a mismatched English token count during this
+          build.
+        </li>
+      </ol>
+
+      <h3>Assumptions, stated plainly</h3>
+      <p>
+        These are choices, not facts. Each one could reasonably have been made
+        differently, and each would move the numbers.
+      </p>
+      <ul>
+        <li><strong>English is the pivot.</strong> Every ratio is against English,
+          which makes English 1.0 by construction and not by merit. A study
+          pivoted on Hindi would produce a different-looking table with the same
+          underlying content.</li>
+        <li><strong>A sentence is the unit of meaning.</strong> Aligned sentence
+          pairs are treated as carrying the same content in both languages. That
+          is what FLORES is built for, and it is still an approximation:
+          translations add and drop material.</li>
+        <li><strong>The floor is the best of eight.</strong> There is no
+          independent measure of what a script inherently requires, so the best
+          tokenizer here stands in for it. That makes every neglect figure a
+          lower bound on the true neglect.</li>
+        <li><strong>One tokenizer per family.</strong> Families ship several
+          checkpoints; one representative was measured for each, chosen for
+          being the family's base vocabulary rather than the newest release.</li>
+        <li><strong>Median over mean, throughout.</strong> Robust to outliers,
+          but it discards information about the tail — which is why the p90 is
+          also exported.</li>
+        <li><strong>Speaker counts come from Wikidata.</strong> They are used for
+          dot size and ordering only, never for a quantitative claim, because
+          they are genuinely contested.</li>
+      </ul>
 
       <h3>Provenance</h3>
       <p>
@@ -180,15 +270,75 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
           .join("")}
       </ul>
 
-      <h3>Validation</h3>
+      <h3>The gates, and what each one catches</h3>
       <p>
-        The pipeline fails rather than exports. Gates run as tests before any
-        JSON is written: English fertility exactly 1.0 for every tokenizer; full
-        coverage across both corpora; a decode round-trip per tokenizer; no
-        language below 0.85× without a written explanation; cross-corpus rank
-        correlation above 0.7; every recorded source still matching what was
-        loaded; and every figure in the documentation re-rendering identically
-        from this data.
+        Every check below runs as a test before any JSON is written, so a
+        failure produces no export at all. They are listed with the specific
+        mistake each is there to catch, because a check whose failure mode you
+        cannot name is decoration.
+      </p>
+      <table class="gates">
+        <caption>Run on every pipeline execution; the build stops on any failure.</caption>
+        <thead>
+          <tr><th scope="col">Gate</th><th scope="col">What it catches</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">English fertility is exactly 1.0</th>
+            <td>A broken pivot. If the ratio of English against itself is not 1,
+              the pairing has been lost somewhere upstream and every other number
+              is meaningless.</td>
+          </tr>
+          <tr>
+            <th scope="row">Full coverage in both corpora</th>
+            <td>A language silently dropped by a join, which would quietly remove
+              exactly the hardest cases.</td>
+          </tr>
+          <tr>
+            <th scope="row">Decode round-trip per tokenizer</th>
+            <td>A tokenizer that is normalising text before encoding it. One does
+              — Qwen applies NFC — and it is handled explicitly rather than
+              hidden, because unnoticed normalisation would understate cost for
+              exactly the scripts that use combining marks.</td>
+          </tr>
+          <tr>
+            <th scope="row">Token offsets tile the sentence</th>
+            <td>Gaps or overlaps in the character spans the tiles are drawn from.
+              All eight tokenizers produce overlapping raw offsets where a
+              multi-byte character splits across tokens, so this is a real
+              condition, not a theoretical one.</td>
+          </tr>
+          <tr>
+            <th scope="row">No language below 0.85×</th>
+            <td>A suspiciously cheap language, which usually means a mis-mapped
+              locale code. Exceptions must be listed with a written reason.</td>
+          </tr>
+          <tr>
+            <th scope="row">Cross-corpus rank correlation above 0.7</th>
+            <td>A result that only holds in Wikipedia-register prose. Measured at
+              ${fig("cross_corpus_rank_correlation")} against the spoken-register
+              corpus, so it survives the change.</td>
+          </tr>
+          <tr>
+            <th scope="row">Recorded sources still match</th>
+            <td>A mirror that changed under the study. Equivalence is re-asserted
+              on tokenizer behaviour, not on file hashes.</td>
+          </tr>
+          <tr>
+            <th scope="row">Every quoted figure re-renders</th>
+            <td>A number typed by hand into prose and then drifting from the data.
+              This one caught two during the build.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        ${data.languages.languages.length} languages ×
+        ${data.languages.tokenizers.length} tokenizers × 2 corpora, from
+        ${fmt.tokens(meta.n_sentences.flores)} aligned sentences and
+        ${fmt.tokens(meta.n_sentences.massive)} aligned utterances. The full
+        pipeline, its tests and its provenance table are in the repository, and
+        the four files this page draws from are linked below — you can check any
+        figure here against them without running anything.
       </p>
 
       <p class="colophon">

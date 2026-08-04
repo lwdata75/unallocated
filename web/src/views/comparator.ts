@@ -41,7 +41,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
 
   root.innerHTML = `
     <div class="section-head">
-      <p class="step-mark">Step 1 of 4 · the demonstration</p>
+      <p class="step-mark">Step 1 of 7 · the demonstration</p>
       <h2>The same sentence, five languages</h2>
       <p class="caption">
         Each tile is one token — one unit you are billed for, one unit of the

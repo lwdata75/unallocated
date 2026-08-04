@@ -70,14 +70,23 @@ export function mountOpening(root: HTMLElement, data: Dataset): void {
         <ol>
           <li><a href="#comparator"><span class="arc-n">1</span>
             <span class="arc-t">See it</span>
-            <span class="arc-d">One sentence, five languages, every token as a tile</span></a></li>
-          <li><a href="#claim"><span class="arc-n">2</span>
+            <span class="arc-d">One sentence, five languages, every token as a tile you can watch merge</span></a></li>
+          <li><a href="#capacity"><span class="arc-n">2</span>
+            <span class="arc-t">What it costs</span>
+            <span class="arc-d">How much of a document fits in the same context window</span></a></li>
+          <li><a href="#claim"><span class="arc-n">3</span>
             <span class="arc-t">The claim</span>
             <span class="arc-d">Why this is an allocation choice and not a property of scripts</span></a></li>
-          <li><a href="#scatter"><span class="arc-n">3</span>
+          <li><a href="#allocation"><span class="arc-n">4</span>
+            <span class="arc-t">Who got it</span>
+            <span class="arc-d">Every language against every tokenizer — find yours</span></a></li>
+          <li><a href="#scatter"><span class="arc-n">5</span>
             <span class="arc-t">All ${data.languages.languages.length}</span>
             <span class="arc-d">Cost against speakers, for every language measured</span></a></li>
-          <li><a href="#methodology"><span class="arc-n">4</span>
+          <li><a href="#conclusion"><span class="arc-n">6</span>
+            <span class="arc-t">What follows</span>
+            <span class="arc-d">The size of the gap, and what would prove this wrong</span></a></li>
+          <li><a href="#methodology"><span class="arc-n">7</span>
             <span class="arc-t">Method &amp; limits</span>
             <span class="arc-d">How it was measured, what it does not claim, where it could be wrong</span></a></li>
         </ol>
