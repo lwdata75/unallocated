@@ -20,8 +20,17 @@ const MIN_LARGE = 3;
 
 const SELECTORS = [
   ".masthead h1", ".masthead p", ".rail-label", ".rail-hint",
-  ".nav-list a", ".tok-btn", '.tok-btn[aria-pressed="true"]', ".theme-btn",
-  ".section-head h2", ".section-head .caption", ".field-note",
+  ".nav-list a", ".nav-top", ".tok-btn", '.tok-btn[aria-pressed="true"]', ".theme-btn",
+  // The opening. Its lede is deliberately two-tone — the setup recessed, the
+  // finding at full ink — so both halves are measured, not just the darker one.
+  ".eyebrow", ".lede", ".lede em", ".standfirst", ".standfirst strong",
+  ".demo figcaption", ".demo figcaption strong",
+  ".demo-name", ".demo-name em", ".demo-value", ".demo-value em", ".demo-note",
+  ".arc-n", ".arc-t", ".arc-d",
+  ".section-head h2", ".section-head .caption", ".caption-fine", ".step-mark",
+  ".try-this", ".try-this strong",
+  ".readout-spread", ".readout-key", ".readout-key strong",
+  ".readout-case", ".readout-case strong",
   ".column-count", ".column-count .unit", ".lang-select",
   ".tile", '.tile[data-empty="true"]', ".badge", '.badge[data-parity="true"]',
   ".chip", ".sample-pos", ".freetext label", ".freetext textarea", ".freetext-status",

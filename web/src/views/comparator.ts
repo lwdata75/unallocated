@@ -41,11 +41,18 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
 
   root.innerHTML = `
     <div class="section-head">
+      <p class="step-mark">Step 1 of 4 · the demonstration</p>
       <h2>The same sentence, five languages</h2>
       <p class="caption">
-        Each tile is one token. The dashed line marks what English costs, so
-        every column below it is the surcharge. Change the tokenizer in the rail
-        and watch the tiles merge.
+        Each tile is one token — one unit you are billed for, one unit of the
+        context window. The dashed line marks what English costs, so every column
+        that runs past it is the surcharge.
+      </p>
+      <p class="try-this">
+        <strong>Try this:</strong> change the tokenizer in the rail and watch the
+        tiles merge. Nothing about the sentences changes — only the vocabulary
+        being charged against them. Swap a language with any column's dropdown,
+        or step through the ${data.samples.sentences.length} sentences below.
       </p>
       <div class="sample-nav">
         <button type="button" class="chip" data-step="-1">Previous sentence</button>
@@ -56,7 +63,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     <div class="tile-strip">
       <div class="columns" role="group" aria-label="Token counts by language"></div>
     </div>
-    <p class="field-note caption"></p>
+    <div class="readout" aria-live="polite"></div>
     <form class="freetext" novalidate>
       <label for="freetext-input">Tile your own sentence</label>
       <textarea id="freetext-input" rows="2"
@@ -67,7 +74,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
   `;
 
   const columnsEl = root.querySelector<HTMLElement>(".columns")!;
-  const noteEl = root.querySelector<HTMLElement>(".field-note")!;
+  const noteEl = root.querySelector<HTMLElement>(".readout")!;
   const posEl = root.querySelector<HTMLElement>(".sample-pos")!;
   const textarea = root.querySelector<HTMLTextAreaElement>("#freetext-input")!;
   const statusEl = root.querySelector<HTMLElement>(".freetext-status")!;
@@ -146,7 +153,7 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     }
 
     posEl.textContent = `Sentence ${state.sampleIndex + 1} of ${data.samples.sentences.length}`;
-    noteEl.textContent = describeSpread(sentence, state.tokenizer, state.heroLanguages, data);
+    noteEl.innerHTML = buildReadout(sentence, state.tokenizer, state.heroLanguages, data);
 
     requestAnimationFrame(() => {
       markTruncatedTiles(columnsEl);
@@ -502,21 +509,111 @@ function altTextFor(
   return `${name}: ${count} tokens, ${fmt.multiplier(ratio)} what English costs for the same sentence.`;
 }
 
-function describeSpread(
+interface ColumnFacts {
+  name: string;
+  tokens: number;
+  /** Fewest tokens any of the eight tokenizers spends on this exact sentence. */
+  floor: number;
+  excess: number;
+  ratio: number;
+}
+
+function columnFacts(
+  sentence: Dataset["samples"]["sentences"][number],
+  tokenizer: string,
+  codes: string[],
+  data: Dataset
+): ColumnFacts[] {
+  const english = sentence.tokens["eng_Latn"]?.[tokenizer]?.length ?? 0;
+  const out: ColumnFacts[] = [];
+  for (const code of codes) {
+    const perTokenizer = sentence.tokens[code];
+    const n = perTokenizer?.[tokenizer]?.length ?? 0;
+    if (!perTokenizer || n === 0) continue;
+    const floor = Math.min(...Object.values(perTokenizer).map((ends) => ends.length));
+    out.push({
+      name: data.byCode.get(code)?.name ?? code,
+      tokens: n,
+      floor,
+      excess: Math.max(n - floor, 0),
+      ratio: english > 0 ? n / english : 1,
+    });
+  }
+  return out;
+}
+
+/**
+ * The readout under the tiles.
+ *
+ * Floor and neglect are the two ideas the whole study turns on, and they used to
+ * appear on screen as a bare pair of numbers whose only explanation was a
+ * `title` tooltip. They are explained here, once, in the place a reader first
+ * meets them.
+ *
+ * The second paragraph is the part worth having: it looks at what is actually
+ * displayed and names a column that is expensive *and at its floor* against one
+ * that is expensive *because of neglect*. That contrast is the argument, and
+ * with the default five languages it is usually sitting right there on screen —
+ * Burmese runs well past the parity line with nothing above its floor, while
+ * Telugu's surcharge is mostly vocabulary nobody spent. Naming them beats
+ * asserting the distinction in the abstract.
+ */
+function buildReadout(
   sentence: Dataset["samples"]["sentences"][number],
   tokenizer: string,
   codes: string[],
   data: Dataset
 ): string {
-  const counts = codes
-    .map((code) => ({
-      name: data.byCode.get(code)?.name ?? code,
-      n: sentence.tokens[code]?.[tokenizer]?.length ?? 0,
-    }))
-    .filter((c) => c.n > 0);
-  if (counts.length < 2) return "";
-  const low = counts.reduce((a, b) => (b.n < a.n ? b : a));
-  const high = counts.reduce((a, b) => (b.n > a.n ? b : a));
-  if (low.name === high.name) return "";
-  return `Same meaning: ${fmt.tokens(low.n)} tokens in ${low.name}, ${fmt.tokens(high.n)} in ${high.name}.`;
+  const facts = columnFacts(sentence, tokenizer, codes, data);
+  if (facts.length < 2) return "";
+
+  const low = facts.reduce((a, b) => (b.tokens < a.tokens ? b : a));
+  const high = facts.reduce((a, b) => (b.tokens > a.tokens ? b : a));
+  const spread =
+    low.name === high.name
+      ? ""
+      : `Same meaning, priced twice: ${fmt.tokens(low.tokens)} tokens in
+         ${low.name}, ${fmt.tokens(high.tokens)} in ${high.name}.`;
+
+  // A column that costs well over English while sitting at its floor is the
+  // clean counterexample to "expensive scripts are just expensive".
+  const atFloor = facts
+    .filter((f) => f.ratio > 1.2 && f.excess === 0)
+    .sort((a, b) => b.ratio - a.ratio)[0];
+  // And the largest excess is the other half of the same contrast.
+  const neglected = facts
+    .filter((f) => f.excess > 0)
+    .sort((a, b) => b.excess - a.excess)[0];
+
+  let contrast = "";
+  if (atFloor && neglected && atFloor.name !== neglected.name) {
+    contrast = `
+      <p class="readout-case">
+        On screen right now: <strong>${atFloor.name}</strong> costs
+        ${fmt.multiplier(atFloor.ratio)} what English does and yet sits exactly at
+        its floor — expensive because of its writing system, not because of
+        neglect. <strong>${neglected.name}</strong> carries
+        ${fmt.tokens(neglected.excess)} tokens above its own floor. That part is
+        not the script. That part is the choice.
+      </p>`;
+  } else if (neglected) {
+    contrast = `
+      <p class="readout-case">
+        On screen right now: <strong>${neglected.name}</strong> carries
+        ${fmt.tokens(neglected.excess)} tokens above its own floor — tokens no
+        writing system requires. Switch tokenizers and watch that number move
+        while the sentence does not.
+      </p>`;
+  }
+
+  return `
+    <p class="readout-spread">${spread}</p>
+    <p class="readout-key">
+      <span><strong>Floor</strong> — the fewest tokens any of the
+        ${data.languages.tokenizers.length} tokenizers here spends on this exact
+        sentence. A stand-in for what the writing system genuinely needs.</span>
+      <span><strong>Above floor</strong> — everything on top of that. Vocabulary
+        that could have been allocated to this language and was not.</span>
+    </p>
+    ${contrast}`;
 }

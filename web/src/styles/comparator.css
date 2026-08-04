@@ -306,6 +306,61 @@
 
 .tiles[data-loading="true"] { opacity: 0.45; }
 
+/* ------------------------------------------------------- prompt and readout
+
+   The tokenizer selector is the most persuasive control on the site — it takes
+   Telugu from 325 tokens to 48 — and it lives in the rail, which is styled to
+   recede. Nothing used to invite anyone to touch it. */
+.try-this {
+  max-width: 68ch;
+  margin-top: var(--s-3);
+  padding-left: var(--s-3);
+  border-left: 2px solid color-mix(in srgb, var(--marine) 45%, transparent);
+  font-size: var(--t-15);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.try-this strong { color: var(--ink); font-weight: 500; }
+
+/* Floor and neglect are the two ideas the study turns on, and they appear in
+   the columns above as a bare pair of numbers. This is where they are named. */
+.readout {
+  max-width: 74ch;
+  margin-top: var(--s-4);
+  display: grid;
+  gap: var(--s-3);
+  font-size: var(--t-13);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.readout p { margin: 0; }
+.readout-spread:empty { display: none; }
+
+.readout-key {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--s-3) var(--s-5);
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--edge);
+  border-bottom: 1px solid var(--edge);
+}
+.readout-key strong {
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 0.92em;
+  font-weight: 400;
+}
+
+/* The live contrast: a column that is expensive and at its floor, against one
+   that is expensive through neglect. Recessed onto its own surface because it
+   describes the state on screen rather than stating a general fact. */
+.readout-case {
+  padding: var(--s-3);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  border-radius: var(--radius-sm);
+}
+.readout-case strong { color: var(--ink); font-weight: 500; }
+
 /* ------------------------------------------------------------ free text */
 
 .freetext { max-width: 68ch; margin-top: var(--s-5); display: flex; flex-direction: column; gap: var(--s-2); }

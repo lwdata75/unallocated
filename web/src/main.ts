@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 import "./styles/tokens.css";
 import "./styles/app.css";
+import "./styles/opening.css";
 import "./styles/comparator.css";
 import "./styles/scatter.css";
 import "./styles/editorial.css";
@@ -11,7 +12,9 @@ import { loadDataset } from "./lib/data";
 import { getState, setState, subscribe } from "./lib/state";
 import { refreshRamp } from "./lib/ramp";
 import * as fmt from "./lib/format";
+import { mountOpening } from "./views/opening";
 import { mountComparator } from "./views/comparator";
+import { mountClaim } from "./views/claim";
 import { mountScatter } from "./views/scatter";
 import { mountMethodology } from "./views/methodology";
 
@@ -25,8 +28,12 @@ async function boot(): Promise<void> {
 
   buildTokenizerList(app, data);
 
+  // Mount order is the reading order: what was found, then the demonstration,
+  // then the argument, then the whole population, then the working.
   const mounts = [
+    ["#opening", mountOpening],
     ["#comparator", mountComparator],
+    ["#claim", mountClaim],
     ["#scatter", mountScatter],
     ["#methodology", mountMethodology],
   ] as const;

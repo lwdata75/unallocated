@@ -1,0 +1,235 @@
+/* The opening — the study's abstract.
+
+   Deliberately the only place on the site with editorial typography at scale.
+   Everything below it is instrument panel; this is the one screen that has to
+   state a finding, so it gets the display face, a real measure, and the single
+   chart that carries the argument. */
+
+.opening { max-width: 78ch; }
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin-bottom: var(--s-4);
+}
+
+/* Inverted emphasis: the setup is recessed and the finding sits at full ink, so
+   the sentence that matters is the one the eye lands on first. */
+.lede {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 112;
+  font-size: clamp(1.75rem, 3.4vw, var(--t-44));
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  max-width: 22ch;
+  color: var(--ink-2);
+}
+.lede em {
+  font-style: normal;
+  color: var(--ink);
+}
+
+.standfirst {
+  max-width: 62ch;
+  margin-top: var(--s-4);
+  font-size: var(--t-16);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+/* "tokens" is the one term the whole study is denominated in and it was
+   previously never defined anywhere in the interface. */
+.standfirst strong { color: var(--ink); font-weight: 500; }
+
+/* ------------------------------------------------------------ the demo chart
+
+   Bar widths are linear in token count and share one scale, so 325 is drawn
+   nine and a half times the length of 34. A log scale would have been kinder to
+   the layout and would have flattened the entire point. */
+
+.demo {
+  margin: var(--s-6) 0 0;
+  max-width: 60ch;
+  padding: var(--s-4) var(--s-5) var(--s-4) var(--s-4);
+  background: var(--field-1);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+}
+
+.demo figcaption {
+  margin-bottom: var(--s-4);
+  font-size: var(--t-13);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.demo figcaption strong { display: block; color: var(--ink); font-weight: 500; }
+
+.demo-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-3);
+}
+
+.demo-rows li {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 4.5rem;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.demo-name {
+  font-family: var(--ui);
+  font-size: var(--t-13);
+  font-weight: 500;
+  line-height: 1.25;
+}
+/* The year and lineage of each tokenizer, so the chart explains itself without
+   a reader having to already know what cl100k is. */
+.demo-name em {
+  display: block;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+/* The English reference. One dashed rule per row rather than one absolutely
+   positioned element over the chart: rows are a grid and the track column does
+   not start at the container's left edge, so a per-row tick is both simpler and
+   immune to the columns being resized. */
+.demo-track {
+  position: relative;
+  display: block;
+  height: 22px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  border-radius: 3px;
+}
+/* The dashes and the gaps between them are both painted — ink for the dash,
+   the card surface for the gap. A plain dashed border vanished wherever it
+   crossed a dark bar, which is precisely where it matters most; this version
+   inverts itself instead. Over the pale empty track the ink dashes read and the
+   gaps disappear; over a dark bar the ink disappears and the pale gaps read. */
+.demo-track::before {
+  content: "";
+  position: absolute;
+  left: var(--eng);
+  top: -6px;
+  bottom: -6px;
+  width: 1px;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--ink) 70%, transparent) 0 3px,
+    color-mix(in srgb, var(--field-1) 90%, transparent) 3px 6px
+  );
+}
+
+.demo-bar {
+  display: block;
+  height: 100%;
+  min-width: 3px;
+  border-radius: 3px;
+  /* The ramp mid-tones cannot carry text at 4.5:1, so nothing is ever set on a
+     bar — the count sits in neutral ink beside it. The outline is what supplies
+     the 3:1 non-text contrast. */
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  transition: width var(--dur-tile) var(--ease), background var(--dur-quick) var(--ease);
+}
+
+.demo-value {
+  text-align: right;
+  font-size: var(--t-15);
+  line-height: 1.25;
+}
+.demo-value em {
+  display: block;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.demo-note {
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--edge);
+  font-size: var(--t-13);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+/* Keys the dashed rule in the chart above to the sentence explaining it. Same
+   two-tone construction, laid on its side. */
+.demo-ref-key {
+  display: inline-block;
+  width: 16px;
+  height: 1px;
+  margin-right: var(--s-2);
+  vertical-align: middle;
+  background: repeating-linear-gradient(
+    to right,
+    color-mix(in srgb, var(--ink) 70%, transparent) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+/* ------------------------------------------------------------------ the arc
+
+   Four steps, numbered, each saying what it will show. The reader is told the
+   shape of the argument before walking into it, which is the difference between
+   a study and a pile of charts. */
+
+.arc { margin-top: var(--s-7); }
+
+.arc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--edge);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.arc a {
+  display: grid;
+  gap: var(--s-1);
+  height: 100%;
+  padding: var(--s-3) var(--s-4) var(--s-4);
+  background: var(--field-1);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--dur-quick) var(--ease);
+}
+.arc a:hover { background: color-mix(in srgb, var(--marine) 8%, var(--field-1)); }
+
+.arc-n {
+  font-family: var(--data);
+  font-size: var(--t-12);
+  color: var(--ink-2);
+}
+.arc-t {
+  font-size: var(--t-15);
+  font-weight: 500;
+  color: var(--marine);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.arc-d {
+  font-size: var(--t-12);
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+@media (max-width: 560px) {
+  .demo { padding: var(--s-3); }
+  .demo-rows li { grid-template-columns: 6.5rem 1fr 3.6rem; gap: var(--s-2); }
+  .demo-name { font-size: var(--t-12); }
+}

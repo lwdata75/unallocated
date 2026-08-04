@@ -180,16 +180,50 @@ a {
   white-space: nowrap;
 }
 
-.nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+/* An ordered list, and numbered visibly: the page is an argument in four moves
+   and the rail is where a reader checks which one they are on. The counter is
+   drawn rather than left to the list marker so it can be set in the data face
+   and aligned with the label. */
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  counter-reset: step;
+}
+.nav-list li { counter-increment: step; }
 .nav-list a {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
   padding: var(--s-1) var(--s-3);
   border-radius: var(--radius-sm);
   color: var(--ink-2);
   font-size: var(--t-13);
   text-decoration: none;
 }
+.nav-list a::before {
+  content: counter(step);
+  font-family: var(--data);
+  font-size: 10px;
+  opacity: 0.65;
+}
 .nav-list a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); text-decoration: underline; }
+
+/* The abstract. Outside the numbering because it is not one of the four moves,
+   and indented to line up with the numbered labels beside it. */
+.nav-top {
+  display: block;
+  padding: var(--s-1) var(--s-3);
+  padding-left: calc(var(--s-3) + 1.1em);
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  font-size: var(--t-13);
+  text-decoration: none;
+}
+.nav-top:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); text-decoration: underline; }
 
 .theme-btn {
   align-self: flex-start;
@@ -210,14 +244,23 @@ a {
    without a floor the sections below would jump up the page as each one fills
    in. Chosen to match the typical rendered height, not padded generously. */
 .section { margin-bottom: var(--s-8); scroll-margin-top: var(--s-5); }
-#comparator { min-height: 1120px; }
-#scatter { min-height: 920px; }
-#methodology { min-height: 3300px; }
+#opening { min-height: 720px; }
+#comparator { min-height: 1260px; }
+#claim { min-height: 1180px; }
+#scatter { min-height: 980px; }
+#methodology { min-height: 2500px; }
+
+/* The opening is the one section that gets air beneath it: it ends with the
+   four-step map, and running that straight into the first chart would collapse
+   the beat where a reader decides to keep going. */
+#opening { margin-bottom: var(--s-8); padding-bottom: var(--s-6); border-bottom: 1px solid var(--edge); }
 
 @media (max-width: 720px) {
-  #comparator { min-height: 1170px; }
-  #scatter { min-height: 2230px; }
-  #methodology { min-height: 5300px; }
+  #opening { min-height: 900px; }
+  #comparator { min-height: 1330px; }
+  #claim { min-height: 1700px; }
+  #scatter { min-height: 2290px; }
+  #methodology { min-height: 4100px; }
 }
 
 .section-head { max-width: 68ch; margin-bottom: var(--s-5); }
@@ -241,20 +284,66 @@ a {
   padding: var(--s-4);
 }
 
+/* Below 960px the rail stops being a rail and becomes a header — and a header
+   has to stay small. It used to reflow to a stacked column that ate roughly
+   760px, so the first thing a phone showed was a list of tokenizer names to
+   someone who did not yet know what a tokenizer was. Controls before content,
+   which is backwards for a study.
+
+   Now: one line of wordmark, one horizontally scrolling row of tokenizers, one
+   row of section links. Roughly 170px, and the opening lands on the first
+   screen. */
 @media (max-width: 960px) {
   .rail {
-    position: sticky;
-    inset: 0 0 auto 0;
+    position: static;
     width: auto;
-    max-height: 45vh;
-    flex-direction: column;
+    max-height: none;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
     border-right: none;
     border-bottom: var(--glass-edge);
   }
+
+  /* The strapline is a duplicate now that the opening states the finding in
+     full a few hundred pixels below. */
+  .masthead p { display: none; }
+  .masthead h1 { font-size: var(--t-16); }
+
+  /* Tokenizers before section links: it is the control that changes the study,
+     the links are only navigation. */
+  .rail-group[role="group"] { order: 2; }
+  nav.rail-group { order: 3; }
+  .theme-btn { order: 4; }
+
+  /* One row that scrolls, rather than four rows that wrap. */
+  .tok-list {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    gap: var(--s-1);
+    padding-bottom: 2px;
+  }
+  .tok-list::-webkit-scrollbar { display: none; }
+  /* nowrap, or "Historical baseline" breaks over two lines and the whole strip
+     doubles in height — which is the thing this breakpoint exists to prevent. */
+  .tok-btn {
+    width: auto;
+    flex: 0 0 auto;
+    gap: var(--s-1);
+    padding: var(--s-1) var(--s-3);
+    border-color: var(--edge);
+    white-space: nowrap;
+  }
+
+  .rail-label { font-size: 10px; }
+  .rail-hint { display: none; }
+
+  .nav-list { flex-direction: row; flex-wrap: wrap; gap: var(--s-1); }
+  .nav-top { padding-left: var(--s-3); }
+
   .field { padding: var(--s-5) var(--s-4) var(--s-7); }
-  .tok-list { flex-direction: row; flex-wrap: wrap; }
-  .tok-btn { width: auto; }
-  .nav-list { flex-direction: row; flex-wrap: wrap; }
 }
 
 @media (max-width: 420px) {

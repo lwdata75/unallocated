@@ -57,14 +57,21 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
 
   root.innerHTML = `
     <div class="section-head">
+      <p class="step-mark">Step 3 of 4 · the whole population</p>
       <h2>What each language costs, against how many people speak it</h2>
       <p class="caption">
-        Every dot is one language on FLORES-200. Horizontal position is what it
-        costs relative to English; vertical position and dot size are how many
-        people speak it. Colour is the share of those tokens that sits above the
-        language's floor — the part no writing system requires. Hover or focus a
-        dot for detail, click to pin it, drag across the plot to filter.
-        Labelled: the 5 highest-surcharge languages and the 3 largest by
+        Five languages made the case. Here are all ${languages.length}. Every dot
+        is one language: horizontal position is what it costs relative to
+        English, vertical position and size are how many people speak it, and
+        colour is the share of those tokens sitting above the language's floor —
+        the part no writing system requires.
+      </p>
+      <!-- Split from the caption above: how to read the chart and how to
+           operate it are different questions, and running them together made a
+           seven-line paragraph that stood between the reader and the plot. -->
+      <p class="caption caption-fine">
+        Hover or focus a dot for detail, click to pin it, drag across the plot to
+        filter. Labelled: the 5 highest-surcharge languages and the 3 largest by
         speakers. The curve is a LOESS smoother; its shaded band is the 95%
         interval, and its width is the point — the relationship is weak.
       </p>

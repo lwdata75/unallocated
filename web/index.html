@@ -39,13 +39,19 @@
             <p>What tokenizer vocabularies were spent on, and what they weren't.</p>
           </div>
 
+          <!-- Numbered, because the page is an argument in four steps rather
+               than three interchangeable artifacts, and the rail is where a
+               reader checks where they are in it. The opening sits outside the
+               numbering: it is the abstract, not a step. -->
           <nav class="rail-group" aria-label="Sections">
-            <span class="rail-label">Sections</span>
-            <ul class="nav-list">
-              <li><a href="#comparator">The comparator</a></li>
-              <li><a href="#scatter">The scatter</a></li>
-              <li><a href="#methodology">Methodology</a></li>
-            </ul>
+            <span class="rail-label">The argument</span>
+            <a class="nav-top" href="#opening">What this found</a>
+            <ol class="nav-list">
+              <li><a href="#comparator">See it</a></li>
+              <li><a href="#claim">The claim</a></li>
+              <li><a href="#scatter">All 204 languages</a></li>
+              <li><a href="#methodology">Method &amp; limits</a></li>
+            </ol>
           </nav>
 
           <!-- role=group sits on the wrapper, not the <ul>: overriding a list's
@@ -60,7 +66,9 @@
         </aside>
 
         <main class="field" id="main">
+          <section class="section" id="opening" aria-busy="true"></section>
           <section class="section" id="comparator" aria-busy="true"></section>
+          <section class="section" id="claim" aria-busy="true"></section>
           <section class="section" id="scatter" aria-busy="true"></section>
           <section class="section" id="methodology" aria-busy="true"></section>
         </main>
