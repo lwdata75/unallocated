@@ -20,15 +20,20 @@ const MIN_LARGE = 3;
 
 const SELECTORS = [
   ".masthead h1", ".masthead p", ".rail-label", ".rail-hint",
-  ".nav-list a", ".nav-top", ".tok-btn", '.tok-btn[aria-pressed="true"]', ".theme-btn",
-  // The opening. Its lede is deliberately two-tone — the setup recessed, the
-  // finding at full ink — so both halves are measured, not just the darker one.
-  ".eyebrow", ".lede", ".lede em", ".standfirst", ".standfirst strong",
-  ".demo figcaption", ".demo figcaption strong",
+  ".nav-list a", ".tok-btn", '.tok-btn[aria-pressed="true"]', ".theme-btn",
+  // The cold open.
+  ".specimen-mark", ".cold-open h2", ".standfirst", ".standfirst strong",
+  ".demo figcaption",
   ".demo-name", ".demo-name em", ".demo-value", ".demo-value em", ".demo-note",
-  ".arc-n", ".arc-t", ".arc-d",
   ".section-head h2", ".section-head .caption", ".caption-fine", ".step-mark",
   ".try-this", ".try-this strong",
+  // The decomposition — the signature element — and the two figures with it.
+  ".decomp-legend-text", ".decomp-legend-text em",
+  ".decomp figcaption", ".decomp figcaption strong",
+  ".control-hint", ".glyphless figcaption", ".glyphless figcaption strong",
+  ".limits h3", ".limits p", ".limits em",
+  // The tile tooltip. Rendered off-screen by the audit's own hover below.
+  ".tile-tip-index", ".tile-tip-body",
   ".readout-spread", ".readout-key", ".readout-key strong",
   ".readout-case", ".readout-case strong",
   // The context window panel.
@@ -48,7 +53,7 @@ const SELECTORS = [
   ".process li", ".process strong",
   ".gates thead th", ".gates tbody th", ".gates tbody td", ".gates caption",
   ".column-count", ".column-count .unit", ".lang-select",
-  ".tile", '.tile[data-empty="true"]', ".badge", '.badge[data-parity="true"]',
+  ".tile", ".badge", '.badge[data-parity="true"]',
   ".chip", ".sample-pos", ".freetext label", ".freetext textarea", ".freetext-status",
   ".editorial p", ".editorial li", ".editorial h3", ".colophon", ".editorial a",
   ".inline-field", ".bar-name", ".bar-value",
@@ -57,19 +62,32 @@ const SELECTORS = [
 async function audit(page, theme) {
   return page.evaluate(
     ({ selectors, MIN, MIN_LARGE }) => {
-      // Chrome returns `rgb(0-255...)` for plain colours but `color(srgb 0-1...)`
-      // for anything that went through color-mix, which is every glass surface
-      // here. Treating those floats as 0-255 makes a white panel look black.
+      // Paint the colour and read the pixel back, rather than pattern-matching
+      // the string. getComputedStyle hands back whatever space the value was
+      // authored in — `rgb()` for a plain hex, `color(srgb …)` in 0–1 for
+      // anything through color-mix, `oklch(…)` now that the palette is authored
+      // in OKLCH, and `oklab(…)` for a color-mix of two OKLCH values. Regexing
+      // all four was how this gate came to report 1.04:1 for every pair on the
+      // site: it read `oklch(0.24 0.022 258)` as an RGB triple, which is a
+      // near-black, and then compared it against a background it had misread
+      // the same way.
+      //
+      // Setting fillStyle is not enough on its own — Chrome round-trips the
+      // string in the space it was given. A 1x1 fill and a getImageData read is
+      // what forces the conversion, because a canvas surface is sRGB. It costs
+      // one readback per colour and it cannot be wrong about a colour space
+      // that has not been invented yet.
+      const ctx = document.createElement("canvas").getContext("2d", {
+        willReadFrequently: true,
+      });
       const parse = (c) => {
-        const m = c.match(/[\d.]+/g);
-        if (!m) return null;
-        const scale = c.startsWith("color(") ? 255 : 1;
-        return [
-          Number(m[0]) * scale,
-          Number(m[1]) * scale,
-          Number(m[2]) * scale,
-          m[3] === undefined ? 1 : Number(m[3]),
-        ];
+        if (!c) return null;
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = "#000000";
+        ctx.fillStyle = c;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+        return [r, g, b, a / 255];
       };
       const over = (fg, bg) =>
         [0, 1, 2].map((i) => fg[i] * fg[3] + bg[i] * (1 - fg[3]));
@@ -136,13 +154,39 @@ async function main() {
   await page.waitForSelector(".matrix tbody tr");
   await page.click(".matrix tbody tr");
   await page.waitForSelector(".lang-detail:not([hidden])");
+  // Same reasoning for the tooltip: it does not exist in the DOM until a tile
+  // has been hovered, and a selector that never renders is never checked.
+  await page.hover(".column .tile");
+  await page.waitForSelector(".tile-tip:not([hidden])");
+
+  /**
+   * Switch theme through the page's own control rather than by stamping
+   * data-theme on the root.
+   *
+   * They are not equivalent. The ramp is resolved in JS — the stops are
+   * authored as CSS custom properties and read back once — so the app rebuilds
+   * it inside the toggle handler. Setting the attribute directly repainted the
+   * CSS into dark mode while every JS-supplied colour on the page stayed on the
+   * light stops, and the audit then measured a combination no visitor can ever
+   * see. It reported the hollow surcharge cell at 1.37:1 that way, which was
+   * neither a real failure nor a real pass.
+   */
+  const setTheme = async (theme) => {
+    for (let i = 0; i < 3; i += 1) {
+      const now = await page.evaluate(
+        () => document.documentElement.dataset.theme ??
+          (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      );
+      if (now === theme) return;
+      await page.click('[data-role="theme"]');
+      await page.waitForTimeout(250);
+    }
+    throw new Error(`could not switch to ${theme}`);
+  };
 
   const failures = [];
   for (const theme of ["light", "dark"]) {
-    await page.evaluate((t) => {
-      document.documentElement.dataset.theme = t;
-    }, theme);
-    await page.waitForTimeout(200);
+    await setTheme(theme);
 
     const rows = await audit(page, theme);
     process.stdout.write(`\n== ${theme}\n`);
@@ -156,20 +200,41 @@ async function main() {
     }
   }
 
-  // No text sits on a ramp colour. The swatch is a non-text UI component, so
-  // WCAG 1.4.11 wants 3:1 for its *boundary* against the surface — the fill is
-  // redundant with the multiplier printed beside it and does not need to carry
-  // contrast on its own.
+  // Non-text UI components, which WCAG 1.4.11 puts at 3:1 for their *boundary*
+  // against the surface behind them.
+  //
+  // Three of them, and the last two are new. The hollow decomposition cell is
+  // the site's signature element and it is drawn entirely as an outline: if that
+  // outline drops below 3:1 the surcharge half of the figure disappears and the
+  // page silently stops making its argument. Same for the empty tile, whose
+  // whole point is that there is nothing inside it — the dashed edge is all
+  // there is to see, and it is measured on the pale end of the ramp in light
+  // mode and the dark end in dark mode, which is where an outline is weakest.
+  // GPT-2 first: it is the only tokenizer that reliably produces glyphless
+  // Telugu tokens, and an outline the audit never renders is an outline the
+  // audit never checked.
+  await page.evaluate(async () => {
+    [...document.querySelectorAll(".tok-btn")]
+      .find((b) => b.textContent.includes("Historical")).click();
+    await new Promise((r) => setTimeout(r, 400));
+  });
+  await page.waitForSelector('.glyphless .tile[data-empty="true"]');
+
   for (const theme of ["light", "dark"]) {
-    await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
-    await page.waitForTimeout(150);
+    await setTheme(theme);
 
     const row = await page.evaluate(() => {
+      // Same pixel readback as above; see the note there for why.
+      const ctx = document.createElement("canvas").getContext("2d", {
+        willReadFrequently: true,
+      });
       const parse = (c) => {
-        const m = c.match(/[\d.]+/g);
-        const scale = c.startsWith("color(") ? 255 : 1;
-        return [Number(m[0]) * scale, Number(m[1]) * scale, Number(m[2]) * scale,
-                m[3] === undefined ? 1 : Number(m[3])];
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = "#000000";
+        ctx.fillStyle = c;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+        return [r, g, b, a / 255];
       };
       const lum = (rgb) => {
         const [r, g, b] = rgb.slice(0, 3).map((c) => {
@@ -182,30 +247,83 @@ async function main() {
         const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
         return (hi + 0.05) / (lo + 0.05);
       };
-      const badge = document.querySelector(".badge:not([data-parity])");
-      const border = parse(getComputedStyle(badge, "::before").borderTopColor);
-      const surface = parse(getComputedStyle(badge).backgroundColor);
-      const composited = [0, 1, 2].map((i) => border[i] * border[3] + surface[i] * (1 - border[3]));
-      return Math.round(ratio(composited, surface) * 100) / 100;
+      const over = (fg, bg) => [0, 1, 2].map((i) => fg[i] * fg[3] + bg[i] * (1 - fg[3]));
+      const effectiveBg = (el) => {
+        const stack = [];
+        for (let n = el; n; n = n.parentElement) {
+          const c = parse(getComputedStyle(n).backgroundColor);
+          if (c && c[3] > 0) {
+            stack.push(c);
+            if (c[3] === 1) break;
+          }
+        }
+        let out = [255, 255, 255];
+        for (const layer of stack.reverse()) out = over(layer, out);
+        return out;
+      };
+
+      // The three outlines, resolved here rather than passed in, because a
+      // getComputedStyle call cannot cross the evaluate boundary.
+      // The legend swatch is the one target where the fill may legitimately be
+      // what carries the 3:1 rather than the outline. Its fill is a ramp stop,
+      // and at the parity end the ramp is deliberately almost the colour of the
+      // page — so the outline has to hold it up there, while at the far end the
+      // fill holds it up on its own and the outline against that fill cannot.
+      // Requiring both would forbid a density ramp outright.
+      const targets = [
+        [".ramp-legend .swatch", "ramp swatch",
+          (el) => getComputedStyle(el).borderTopColor,
+          (el) => getComputedStyle(el).backgroundColor],
+        ['.decomp-cell[data-kind="surcharge"]', "hollow surcharge cell",
+          (el) => getComputedStyle(el).borderTopColor],
+        ['.glyphless .tile[data-empty="true"]', "glyphless tile",
+          (el) => getComputedStyle(el).borderTopColor],
+      ];
+
+      return targets.map(([sel, name, read, readFill]) => {
+        const el = document.querySelector(sel);
+        if (!el) return { name, missing: true };
+        // The surface the component sits *on*, not its own fill.
+        const bg = effectiveBg(el.parentElement);
+        let best = ratio(over(parse(read(el)), bg), bg);
+        if (readFill) best = Math.max(best, ratio(over(parse(readFill(el)), bg), bg));
+        return { name, ratio: Math.round(best * 100) / 100 };
+      });
     });
 
-    const ok = row >= 3;
-    if (!ok) failures.push(`${theme} ramp swatch outline: ${row}:1 (needs 3:1)`);
-    process.stdout.write(`\n== ${theme} ramp swatch outline\n  ${ok ? "ok  " : "FAIL"} ${row}:1\n`);
+    process.stdout.write(`\n== ${theme} non-text outlines\n`);
+    for (const r of row) {
+      if (r.missing) {
+        // Not "probably fine": an outline that never rendered is an outline
+        // that was never checked, and this gate exists to say so out loud.
+        failures.push(`${theme} ${r.name}: never rendered, so never measured`);
+        process.stdout.write(`  FAIL   ${r.name} did not render\n`);
+        continue;
+      }
+      const ok = r.ratio >= 3;
+      if (!ok) failures.push(`${theme} ${r.name} outline: ${r.ratio}:1 (needs 3:1)`);
+      process.stdout.write(`  ${ok ? "ok  " : "FAIL"} ${String(r.ratio).padStart(6)}:1  ${r.name}\n`);
+    }
   }
 
   // The heatmap is the only place on the site that sets text on a ramp colour.
   // It is allowed to because ramp.ts picks near-black or near-white per cell —
   // but "picks" is a claim, so every rendered cell is measured, not sampled.
   for (const theme of ["light", "dark"]) {
-    await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
-    await page.waitForTimeout(200);
+    await setTheme(theme);
 
     const worst = await page.evaluate(() => {
+      // Same pixel readback as above; see the note there for why.
+      const ctx = document.createElement("canvas").getContext("2d", {
+        willReadFrequently: true,
+      });
       const parse = (c) => {
-        const m = c.match(/[\d.]+/g);
-        const scale = c.startsWith("color(") ? 255 : 1;
-        return [Number(m[0]) * scale, Number(m[1]) * scale, Number(m[2]) * scale];
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = "#000000";
+        ctx.fillStyle = c;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        return [r, g, b];
       };
       const lum = (rgb) => {
         const [r, g, b] = rgb.map((c) => {

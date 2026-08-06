@@ -6,28 +6,41 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+/* The argument is set in a serif because the argument is a paper. Everything
+   that *labels* rather than argues — headings, controls, numbers — is set in the
+   same monospace the tokens are set in. Two families, one rule for choosing
+   between them, and no third register to be inconsistent about.
+
+   font-variant-numeric is deliberately not tabular here: lining figures inside
+   running prose are what a book does. It is switched on for .tabular, which is
+   every number a reader might compare against the number below it. */
 body {
   margin: 0;
-  background: var(--field-0);
-  color: var(--ink);
-  font-family: var(--ui);
-  font-size: var(--t-16);
-  line-height: 1.55;
-  font-variant-numeric: tabular-nums;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--prose);
+  font-size: var(--t-17);
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { font-weight: 600; line-height: 1.15; margin: 0; }
+h1, h2, h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: var(--track-title);
+}
 p { margin: 0; }
 
 a {
-  color: var(--marine);
+  color: var(--accent);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 
 :focus-visible {
-  outline: 2px solid var(--marine);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -40,8 +53,8 @@ a {
   top: -60px;
   z-index: 100;
   padding: var(--s-2) var(--s-4);
-  background: var(--field-1);
-  border: 1px solid var(--edge);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius);
   transition: top var(--dur-quick) var(--ease);
 }
@@ -87,12 +100,12 @@ a {
   gap: var(--s-5);
   padding: var(--s-5) var(--s-4);
   overflow-y: auto;
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: var(--t-13);
   background: var(--rail-surface);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-right: 1px solid var(--edge);
+  border-right: 1px solid var(--hairline);
   box-shadow: var(--glass-inset);
 }
 
@@ -103,37 +116,39 @@ a {
   padding: var(--s-6) var(--s-5) var(--s-8) calc(var(--rail-w) + var(--s-5));
 }
 
-/* The wordmark is one of only two things in the rail at full contrast. */
+/* The wordmark is one of only two things in the rail at full contrast. Set in
+   the token face, uppercase and open-tracked: a name that reads as a label on
+   an instrument rather than as a brand. */
 .masthead h1 {
-  font-family: var(--display);
-  font-variation-settings: "wdth" 112;
-  font-size: var(--t-20);
-  letter-spacing: -0.01em;
-  color: var(--ink);
+  font-size: var(--t-13);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text);
 }
 .masthead p {
-  margin-top: var(--s-1);
-  font-size: var(--t-12);
-  line-height: 1.4;
-  color: var(--ink-2);
-  opacity: 0.85;
+  margin-top: var(--s-2);
+  font-family: var(--prose);
+  font-size: var(--t-13);
+  line-height: 1.45;
+  color: var(--text-muted);
 }
 
 .rail-group { display: flex; flex-direction: column; gap: var(--s-2); }
 
 .rail-label {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.07em;
+  font-family: var(--label);
+  font-size: var(--t-11);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
-  color: var(--ink-2);
-  opacity: 0.8;
+  color: var(--text-muted);
 }
 
 .rail-hint {
-  font-size: 11px;
+  font-family: var(--prose);
+  font-size: var(--t-13);
   line-height: 1.45;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* Tokenizer selector: a list, not a dropdown. Seeing all eight families and
@@ -157,40 +172,44 @@ a {
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-2);
-  font-family: var(--ui);
-  font-size: var(--t-13);
+  color: var(--text-muted);
+  /* 11px, not 13: the token face is a wide monospace and "Multilingual-first"
+     plus a vocabulary size has to fit one line inside the rail. */
+  font-family: var(--label);
+  font-size: var(--t-11);
+  letter-spacing: -0.02em;
   text-align: left;
   cursor: pointer;
   transition: background var(--dur-quick) var(--ease), color var(--dur-quick) var(--ease);
 }
-.tok-btn:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.tok-btn:hover { background: var(--sunk-strong); color: var(--text); }
 /* The selected tokenizer is the other thing at full contrast: it is the one
    piece of state in the rail that changes what the study shows. */
 .tok-btn[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--marine) 12%, transparent);
-  border-color: color-mix(in srgb, var(--marine) 35%, transparent);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--text);
   font-weight: 500;
 }
 .tok-btn .vocab {
   font-family: var(--data);
-  font-size: var(--t-12);
-  color: var(--ink-2);
+  font-size: var(--t-11);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
-/* An ordered list, and numbered visibly: the page is an argument in four moves
+/* An ordered list, and numbered visibly: the page is an argument in eight moves
    and the rail is where a reader checks which one they are on. The counter is
-   drawn rather than left to the list marker so it can be set in the data face
-   and aligned with the label. */
+   drawn rather than left to the list marker so it can be set in the token face
+   and aligned with the label. Labels are prose, because they are names of things
+   and a wide monospace would run every one of them onto two lines. */
 .nav-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   counter-reset: step;
 }
 .nav-list li { counter-increment: step; }
@@ -198,45 +217,36 @@ a {
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
-  padding: var(--s-1) var(--s-3);
+  padding: 3px var(--s-3);
   border-radius: var(--radius-sm);
-  color: var(--ink-2);
-  font-size: var(--t-13);
+  color: var(--text-muted);
+  font-family: var(--prose);
+  font-size: var(--t-15);
+  line-height: 1.35;
   text-decoration: none;
 }
 .nav-list a::before {
-  content: counter(step);
+  content: counter(step, decimal-leading-zero);
+  flex: 0 0 auto;
   font-family: var(--data);
-  font-size: 10px;
-  opacity: 0.65;
+  font-size: var(--t-11);
+  opacity: 0.6;
 }
-.nav-list a:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); text-decoration: underline; }
-
-/* The abstract. Outside the numbering because it is not one of the four moves,
-   and indented to line up with the numbered labels beside it. */
-.nav-top {
-  display: block;
-  padding: var(--s-1) var(--s-3);
-  padding-left: calc(var(--s-3) + 1.1em);
-  border-radius: var(--radius-sm);
-  color: var(--ink-2);
-  font-size: var(--t-13);
-  text-decoration: none;
-}
-.nav-top:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); text-decoration: underline; }
+.nav-list a:hover { background: var(--sunk-strong); color: var(--text); text-decoration: underline; }
 
 .theme-btn {
   align-self: flex-start;
   padding: var(--s-1) var(--s-3);
-  font-family: var(--ui);
-  font-size: var(--t-12);
-  color: var(--ink-2);
+  font-family: var(--label);
+  font-size: var(--t-11);
+  letter-spacing: var(--track-data);
+  color: var(--text-muted);
   background: transparent;
-  border: 1px solid var(--edge);
+  border: 1px solid var(--hairline);
   border-radius: 999px;
   cursor: pointer;
 }
-.theme-btn:hover { color: var(--ink); }
+.theme-btn:hover { color: var(--text); }
 
 /* ---------------------------------------------------------------- sections */
 
@@ -244,42 +254,104 @@ a {
    without a floor the sections below would jump up the page as each one fills
    in. Chosen to match the typical rendered height, not padded generously. */
 .section { margin-bottom: var(--s-8); scroll-margin-top: var(--s-5); }
-#opening { min-height: 720px; }
-#comparator { min-height: 1260px; }
-#claim { min-height: 1180px; }
-#scatter { min-height: 980px; }
-#methodology { min-height: 2500px; }
+#specimen { min-height: 1660px; }
+#tokenizers { min-height: 1020px; }
+#surcharge { min-height: 1900px; }
+#allocation { min-height: 1770px; }
+#scatter { min-height: 990px; }
+#falsifiable { min-height: 2050px; }
+#limits { min-height: 1240px; }
+#method { min-height: 4620px; }
 
-/* The opening is the one section that gets air beneath it: it ends with the
-   four-step map, and running that straight into the first chart would collapse
+/* The cold open is the one section that gets a rule beneath it: it ends on the
+   free-text box, and running that straight into the next chart would collapse
    the beat where a reader decides to keep going. */
-#opening { margin-bottom: var(--s-8); padding-bottom: var(--s-6); border-bottom: 1px solid var(--edge); }
+#specimen { padding-bottom: var(--s-7); border-bottom: 1px solid var(--hairline); }
+
+/* Skip style, layout and paint for sections nobody has scrolled to yet. The
+   document is about 16,000px tall and a reader meets 900px of it, so without
+   this the browser lays out a 204-row heatmap, a 204-point scatter and 1,600
+   words of method before it can paint the first sentence.
+
+   `auto` rather than `hidden`: the content stays searchable with the browser's
+   own find-in-page, stays reachable by anchor link, and stays in the
+   accessibility tree. The intrinsic sizes are the same measured heights as the
+   min-heights above, so the scrollbar is honest before anything has rendered,
+   and `auto` lets Chrome replace the estimate with the real height once a
+   section has been rendered once.
+
+   #specimen is deliberately excluded: it is the one section that is on screen
+   at load, and skipping it would only add a frame. */
+#tokenizers { content-visibility: auto; contain-intrinsic-size: auto 1020px; }
+#surcharge { content-visibility: auto; contain-intrinsic-size: auto 1900px; }
+#allocation { content-visibility: auto; contain-intrinsic-size: auto 1770px; }
+#scatter { content-visibility: auto; contain-intrinsic-size: auto 990px; }
+#falsifiable { content-visibility: auto; contain-intrinsic-size: auto 2050px; }
+#limits { content-visibility: auto; contain-intrinsic-size: auto 1240px; }
+#method { content-visibility: auto; contain-intrinsic-size: auto 4620px; }
 
 @media (max-width: 720px) {
-  #opening { min-height: 900px; }
-  #comparator { min-height: 1330px; }
-  #claim { min-height: 1700px; }
+  #specimen { min-height: 2000px; }
+  #tokenizers { min-height: 1500px; }
+  #surcharge { min-height: 3000px; }
+  #allocation { min-height: 2200px; }
   #scatter { min-height: 2290px; }
-  #methodology { min-height: 4100px; }
+  #falsifiable { min-height: 3100px; }
+  #limits { min-height: 2000px; }
+  #method { min-height: 7000px; }
 }
 
 .section-head { max-width: 68ch; margin-bottom: var(--s-5); }
 .section-head h2 {
-  font-family: var(--display);
-  font-variation-settings: "wdth" 112;
-  font-size: var(--t-28);
-  letter-spacing: -0.015em;
+  font-size: var(--t-30);
+  /* The display face is a wide monospace, so it needs a shorter measure than
+     the prose beneath it or a two-word title breaks over three lines. */
+  max-width: 20ch;
 }
 .section-head .caption {
-  margin-top: var(--s-2);
-  color: var(--ink-2);
+  margin-top: var(--s-3);
+  color: var(--text-muted);
   font-size: var(--t-15);
 }
 
+/* The sentence under a title, carrying the section's claim in full. Set larger
+   than body and in the prose face, so the reader meets the argument before the
+   apparatus. */
+.standfirst {
+  max-width: 58ch;
+  margin-top: var(--s-3);
+  font-size: var(--t-20);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.standfirst strong { color: var(--text); font-weight: 600; }
+
+/* ------------------------------------------------------------- the cold open
+
+   The specimen paints first and this sits under it. Deliberately not a hero:
+   by the time a reader gets here they have already seen the finding, so this
+   only has to name it and define the one word the study is denominated in. */
+
+/* The one thing that sits *above* the specimen, and it is a label rather than
+   prose: a reader arriving on a wall of tiles needs to know what they are
+   looking at the moment they land, and "a measurement study across 204
+   languages" does that in a line without stating the finding first. The finding
+   is still below, where the tiles have already made it. */
+.specimen-mark { margin-bottom: var(--s-3); }
+
+.cold-open { max-width: 74ch; margin-top: var(--s-6); }
+.cold-open h2 {
+  font-size: clamp(1.5rem, 3.1vw, var(--t-34));
+  letter-spacing: var(--track-display);
+  max-width: 24ch;
+}
+.cold-open .standfirst { max-width: 62ch; margin-top: var(--s-4); }
+.cold-open .try-this { margin-top: var(--s-4); }
+
 /* A flat card, explicitly not glass: nothing sits behind it. */
 .panel {
-  background: var(--field-1);
-  border: 1px solid var(--edge);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius);
   padding: var(--s-4);
 }
@@ -307,7 +379,7 @@ a {
   /* The strapline is a duplicate now that the opening states the finding in
      full a few hundred pixels below. */
   .masthead p { display: none; }
-  .masthead h1 { font-size: var(--t-16); }
+  .masthead h1 { font-size: var(--t-12); }
 
   /* Tokenizers before section links: it is the control that changes the study,
      the links are only navigation. */
@@ -333,7 +405,7 @@ a {
     flex: 0 0 auto;
     gap: var(--s-1);
     padding: var(--s-1) var(--s-3);
-    border-color: var(--edge);
+    border-color: var(--hairline);
     white-space: nowrap;
   }
 
@@ -341,12 +413,13 @@ a {
   .rail-hint { display: none; }
 
   .nav-list { flex-direction: row; flex-wrap: wrap; gap: var(--s-1); }
-  .nav-top { padding-left: var(--s-3); }
+  .nav-list a { font-size: var(--t-13); }
 
   .field { padding: var(--s-5) var(--s-4) var(--s-7); }
 }
 
 @media (max-width: 420px) {
   .field { padding: var(--s-4) var(--s-3) var(--s-6); }
-  .section-head h2 { font-size: var(--t-20); }
+  .section-head h2 { font-size: var(--t-22); }
+  .standfirst { font-size: var(--t-17); }
 }

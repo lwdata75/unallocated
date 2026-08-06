@@ -49,37 +49,16 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
   root.innerHTML = `
     <div class="editorial">
       <div class="section-head">
-        <p class="step-mark">Step 7 of 7 · the working</p>
-        <h2>Method and limits</h2>
+        <p class="step-mark">Eight</p>
+        <h2>Method and provenance</h2>
         <p class="caption">
           Every number on this site is generated from the pipeline's exported
-          data. Hover any figure to see the statistic and sample it refers to.
-          Nothing below is softened: a study is only worth as much as the
-          objections it states against itself.
+          data. Hover any figure to see the statistic and the sample it refers
+          to. What the study refuses to claim is the section above this one.
         </p>
       </div>
 
       ${degradedNotice}
-
-      <h3>What this does not claim</h3>
-      <ul>
-        <li><strong>Nothing about model quality.</strong> Fertility is a property
-          of a tokenizer, not of a model. A model with a bad tokenizer may still
-          be the best available.</li>
-        <li><strong>No ranking of model versions.</strong> Comparisons are between
-          tokenizer <em>families</em>, one representative each, and every axis
-          label says so. Not a leaderboard.</li>
-        <li><strong>No currency figure that is anything but illustrative.</strong>
-          Per-token pricing varies by provider, by model and between input and
-          output, and changes often. A multiplier is a measurement; a price is a
-          worked example.</li>
-        <li><strong>No causal claim about downstream behaviour.</strong> High
-          fertility plausibly degrades quality and effective context, arguably the
-          more serious harm — but this measures token counts, not capability.</li>
-        <li><strong>No claim that the floor is the true floor.</strong> It is the
-          best of the eight tokenizers here, so it is an upper bound. A better
-          tokenizer would lower it and make every neglect figure larger.</li>
-      </ul>
 
       <h3>What is being measured</h3>
       <p>
@@ -239,27 +218,16 @@ export function mountMethodology(root: HTMLElement, data: Dataset): void {
           are not used.</li>
       </ul>
 
-      <h3>Caveats that matter</h3>
-      <ul>
-        <li><strong>FLORES is translationese.</strong> Every non-English sentence
-          is a translation of an English source. That is what makes it aligned and
-          usable, but translated prose tracks English structure more closely than
-          native writing. If anything this understates the surcharge. MASSIVE is a
-          partial control and agrees closely: Spearman ρ between the two corpora
-          is ${fig("cross_corpus_rank_correlation")} across the eight tokenizers.</li>
-        <li><strong>Speaker counts are contested.</strong> They depend on whether
-          second-language speakers are counted, on how a macrolanguage is
-          subdivided, and on census politics. Used for dot size and ordering, not
-          for any quantitative claim.</li>
-        <li><strong>Median, not mean.</strong> A handful of pathological sentences
-          cannot drive the result. The p90 is reported alongside because tail cost
-          determines whether a document fits in a context window.</li>
-      </ul>
-
       <h3>Reading the colour</h3>
       <p>
-        The ramp is diverging and anchored at parity, so a language that costs the
-        same as English reads as neutral rather than as the good end of a scale.
+        The ramp is sequential and single-hue: lightness falls monotonically from
+        parity to the worst case measured, so a higher cost reads as more ink and
+        never as a worse colour. That is deliberate. A red-to-green ramp would
+        say that a language whose script needs more tokens is doing something
+        wrong, which is the opposite of the finding. It also means the ramp
+        carries its whole signal in lightness, so it survives any form of colour
+        vision deficiency, and that a language sitting at parity is drawn almost
+        blank — which is the correct reading. No surcharge, no ink.
       </p>
       <ul class="ramp-legend">
         ${stops

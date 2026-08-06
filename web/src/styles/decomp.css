@@ -1,0 +1,307 @@
+/* The signature element, and the two figures that sit with it.
+
+   The site is called Unallocated, so negative space is the motif and it is drawn
+   literally: solid cells are tokens the writing system genuinely needs, hollow
+   cells are tokens nobody allocated vocabulary for. The unallocated half stops
+   being a percentage in a caption and becomes a visible absence.
+
+   Everything else on the page is quiet so this lands. If a decoration elsewhere
+   did not serve this idea it was cut.                                        */
+
+.decomp {
+  --decomp-ink: var(--text);
+  --cell: 12px;
+  --cell-gap: 3px;
+  margin: var(--s-5) 0 0;
+  max-width: 62rem;
+  padding: var(--s-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+.decomp-body { display: grid; }
+
+.decomp-row {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: var(--s-4);
+  align-items: start;
+}
+
+/* Both grids take the same track definition and the same width, so cells line
+   up column-for-column across the split and the two blocks read as one field
+   that has come apart rather than as two unrelated charts. */
+/* Capped at 34 columns rather than left to fill the field. A fixed row length
+   is what makes the figure comparable at all: swap the tokenizer and the block
+   grows by whole rows, so the change is a shape you can see rather than a
+   number you have to read. Below that width it falls back to auto-fill. */
+.decomp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--cell));
+  gap: var(--cell-gap);
+  align-content: start;
+  min-height: var(--cell);
+  max-width: min(100%, calc(34 * var(--cell) + 33 * var(--cell-gap)));
+}
+
+.decomp-cell {
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: 2px;
+}
+.decomp-cell[data-kind="floor"] {
+  background: var(--decomp-ink);
+  border: 1px solid var(--decomp-ink);
+}
+/* The whole point. Same footprint, hairline outline, no fill. */
+.decomp-cell[data-kind="surcharge"] {
+  background: transparent;
+  border: 1px solid var(--decomp-ink);
+}
+
+.decomp-legend {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  justify-self: end;
+  text-align: right;
+}
+.decomp-key {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--decomp-ink);
+  transform: translateY(1px);
+}
+.decomp-key[data-kind="floor"] { background: var(--decomp-ink); }
+.decomp-legend-text {
+  font-family: var(--label);
+  font-size: var(--t-12);
+  line-height: 1.3;
+  letter-spacing: var(--track-data);
+}
+.decomp-legend-text em {
+  display: block;
+  font-style: normal;
+  font-size: var(--t-11);
+  color: var(--text-muted);
+}
+
+/* The gap is real in the resting state, so the layout never depends on the
+   animation having run. The motion below only pulls the block *up* to start
+   with and lets it settle, which keeps the whole effect on the compositor —
+   animating the margin itself would relayout the page on every frame. */
+.decomp-surcharge { margin-top: var(--s-5); }
+
+.decomp[data-empty="true"] .decomp-surcharge .decomp-grid::before {
+  content: "nothing above the floor — this is the best vocabulary measured for this language";
+  font-family: var(--prose);
+  font-size: var(--t-13);
+  font-style: italic;
+  color: var(--text-muted);
+  grid-column: 1 / -1;
+}
+
+/* The one scroll-linked moment on the site. A view-progress timeline means the
+   separation is driven by the scroller with no listener on the scroll path at
+   all; the fallback is simply the resting state, which is the end state, so
+   nothing is lost where it is unsupported.
+
+   prefers-reduced-motion drops out of the @media and lands on that same end
+   state, as does a browser without view timelines. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .decomp-surcharge {
+      animation: decomp-separate linear both;
+      animation-timeline: view();
+      animation-range: entry 30% entry 90%;
+    }
+    .decomp-surcharge .decomp-legend {
+      animation: decomp-label linear both;
+      animation-timeline: view();
+      animation-range: entry 45% entry 95%;
+    }
+  }
+}
+
+@keyframes decomp-separate {
+  from { transform: translateY(calc(-1 * var(--s-5) + 2px)); }
+  to { transform: translateY(0); }
+}
+@keyframes decomp-label {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.decomp figcaption {
+  margin-top: var(--s-5);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--hairline);
+  max-width: 78ch;
+  font-size: var(--t-13);
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.decomp figcaption strong { color: var(--text); font-weight: 400; font-family: var(--label); }
+
+.decomp-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-5);
+}
+.decomp-controls .lang-select { flex: 0 0 auto; min-width: 12rem; }
+.control-hint {
+  flex: 1 1 22ch;
+  min-width: 0;
+  font-size: var(--t-13);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------ the glyphless specimen
+
+   Where the decomposition above is an accounting identity drawn as a picture,
+   this is the same idea true token by token: these particular tiles really do
+   contain no character. Nothing is arranged for effect. */
+
+.glyphless {
+  margin: var(--s-5) 0 0;
+  max-width: 80ch;
+}
+.glyphless-tiles {
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  /* A deeper wash than the comparator's, because on this figure the difference
+     between a filled tile and an empty one is the entire subject and the 4%
+     the comparator uses leaves the two states almost the same shade. A hollow
+     tile has no fill, so it shows this; a filled tile sits on --surface-raised
+     above it. The result reads as a sheet with holes punched in it, which is
+     what 136 of 221 of these tokens are. */
+  background: var(--sunk-strong);
+}
+.glyphless figcaption {
+  margin-top: var(--s-3);
+  font-size: var(--t-13);
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.glyphless figcaption strong { color: var(--text); font-weight: 400; font-family: var(--label); }
+
+/* --------------------------------------------------------------- the limits
+
+   Set at reading size, in the reading column, as cards rather than list items,
+   because this section is the credibility of the study and it used to be an
+   unstyled <ul> two thirds of the way down something headed "Method and
+   limits". Each card's heading carries the refusal, so the section can be
+   understood by scanning the headings alone.                                  */
+
+.limits {
+  list-style: none;
+  margin: var(--s-5) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1px;
+  /* The card surface, not the hairline: with an odd number of cards the grid
+     leaves one track empty, and a hairline-coloured background turned that into
+     a grey slab. The rules between cards are drawn by each card instead. */
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 96ch;
+}
+.limits li {
+  padding: var(--s-4) var(--s-5) var(--s-5);
+  background: var(--surface-raised);
+  box-shadow: 1px 0 0 var(--hairline), 0 1px 0 var(--hairline);
+}
+.limits h3 {
+  margin: 0 0 var(--s-2);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: var(--t-15);
+  letter-spacing: var(--track-title);
+  line-height: 1.25;
+}
+/* A rule that stops short, so the refusal reads as a heading over its own
+   paragraph rather than as the first line of it. */
+.limits h3::after {
+  content: "";
+  display: block;
+  width: 2rem;
+  height: 2px;
+  margin-top: var(--s-2);
+  background: var(--decomp-rule, var(--text-muted));
+  opacity: 0.5;
+}
+.limits p {
+  font-size: var(--t-15);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.limits em { font-style: italic; }
+
+/* ----------------------------------------------------------- the tile tooltip
+
+   Glass, because it is chrome and there is genuinely live content behind it.
+   The lag the design calls for is a transition on `translate`, not a rAF loop:
+   the tooltip is the only thing that moves, and it moves on the compositor. */
+
+.tile-tip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  pointer-events: none;
+  max-width: 26rem;
+  display: grid;
+  gap: 2px;
+  padding: var(--s-2) var(--s-3);
+  border: var(--glass-edge);
+  border-radius: var(--radius-sm);
+  background: var(--rail-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow), var(--glass-inset);
+}
+.tile-tip[hidden] { display: none; }
+.tile-tip[data-settled="true"] { transition: translate 90ms linear; }
+
+.tile-tip-index {
+  font-family: var(--label);
+  font-size: var(--t-11);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.tile-tip-body {
+  font-family: var(--data);
+  font-size: var(--t-13);
+  line-height: 1.4;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tile-tip-body.is-empty {
+  font-family: var(--prose);
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+  .decomp { padding: var(--s-3); --cell: 10px; --cell-gap: 2px; }
+  /* The legend goes above its grid rather than beside it: an 8.5rem label
+     column out of 380px leaves the cells nowhere to go. */
+  .decomp-row { grid-template-columns: 1fr; gap: var(--s-2); }
+  .decomp-legend { justify-self: start; text-align: left; }
+  .decomp-surcharge { margin-top: var(--s-4); }
+  @keyframes decomp-separate {
+    from { transform: translateY(calc(-1 * var(--s-4) + 2px)); }
+    to { transform: translateY(0); }
+  }
+  .limits li { padding: var(--s-3) var(--s-4) var(--s-4); }
+}

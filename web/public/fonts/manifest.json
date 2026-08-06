@@ -1,14 +1,14 @@
 {
-  "generated": "2026-07-30",
+  "generated": "2026-08-06",
   "source": "https://fonts.googleapis.com/css2",
   "licence": "SIL Open Font License 1.1",
   "spdx": "OFL-1.1",
   "families": [
     {
       "key": "ui",
-      "spec": "Archivo:wght@600 + Instrument+Sans:wght@400;500 + Martian+Mono:wght@400",
+      "spec": "Martian+Mono:wght@400 + Martian+Mono:wght@700 + Newsreader:wght@400 + Newsreader:wght@600 + Newsreader:ital,wght@1,400",
       "css": "fonts-ui.css",
-      "sha256": "84638e0c6fe24a1698031c96c6e319885a6137a48773dd8bedac55e40b973383"
+      "sha256": "3241241e0e265a647fb9c0a0e7a9eb7c2f110c80a0fd80b34ba1e1c78d284f9c"
     },
     {
       "key": "Grek",

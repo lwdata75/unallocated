@@ -9,19 +9,19 @@
       content="A data study on tokenizer fertility across 204 languages. The same sentence costs more tokens in every language than in English, and most of that surcharge is a choice rather than a property of the language."
     />
     <meta name="color-scheme" content="light dark" />
-    <!-- Three tiles of increasing count: the site's argument at 16px. -->
+    <!-- Four cells, two of them hollow: the site's argument at 16px. -->
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23E9ECF0'/%3E%3Crect x='2' y='3' width='11' height='2.5' fill='%232E9E8F'/%3E%3Crect x='2' y='6.75' width='5' height='2.5' fill='%23DFCB8C'/%3E%3Crect x='7.5' y='6.75' width='5.5' height='2.5' fill='%23DFCB8C'/%3E%3Crect x='2' y='10.5' width='2.5' height='2.5' fill='%23B04A32'/%3E%3Crect x='5' y='10.5' width='2.5' height='2.5' fill='%23B04A32'/%3E%3Crect x='8' y='10.5' width='2.5' height='2.5' fill='%23B04A32'/%3E%3Crect x='11' y='10.5' width='2' height='2.5' fill='%23B04A32'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23EAEDF1'/%3E%3Crect x='2' y='2.5' width='5' height='5' fill='%2383512D'/%3E%3Crect x='9' y='2.5' width='5' height='5' fill='%2383512D'/%3E%3Crect x='2.5' y='9' width='4' height='4' fill='none' stroke='%2383512D'/%3E%3Crect x='9.5' y='9' width='4' height='4' fill='none' stroke='%2383512D'/%3E%3C/svg%3E"
     />
-    <!-- UI faces block the first paint: three families, a few KB. The
-         per-script faces are separate stylesheets, requested by src/lib/fonts.ts
-         only for scripts actually on screen. -->
+    <!-- Two chrome faces, ~43 KB of Latin, preloaded because the first screen
+         paints with all three subsets. The per-script faces are separate
+         stylesheets, requested by src/lib/fonts.ts only for scripts on screen. -->
     <link rel="stylesheet" href="/fonts/fonts-ui.css" />
     <!-- fonts:preload -->
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/v25-d9e8c29fdd34.woff2" crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/v4-2ee17598a98d.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/v6-bb677c9c5cf5.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/v6-51d46132d1f7.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/v26-e66067814f1c.woff2" crossorigin />
     <!-- /fonts:preload -->
     <link rel="preload" href="/data/samples.json" as="fetch" crossorigin />
     <link rel="preload" href="/data/languages.json" as="fetch" crossorigin />
@@ -29,7 +29,7 @@
   <body>
     <a class="skip-link" href="#main">Skip to the data</a>
     <!-- The shell is static so the rail paints on the first frame rather than
-         after languages.json lands. Only the tokenizer list and the three
+         after languages.json lands. Only the tokenizer list and the eight
          sections are filled in by script. -->
     <div id="app">
       <div class="layout">
@@ -39,21 +39,20 @@
             <p>What tokenizer vocabularies were spent on, and what they weren't.</p>
           </div>
 
-          <!-- Numbered, because the page is an argument in four steps rather
-               than three interchangeable artifacts, and the rail is where a
-               reader checks where they are in it. The opening sits outside the
-               numbering: it is the abstract, not a step. -->
+          <!-- Every label names what is in the section. "The claim" and "What
+               follows" named the rhetorical move instead, which tells a reader
+               nothing about whether they want to be there. -->
           <nav class="rail-group" aria-label="Sections">
-            <span class="rail-label">The argument</span>
-            <a class="nav-top" href="#opening">What this found</a>
+            <span class="rail-label">Contents</span>
             <ol class="nav-list">
-              <li><a href="#comparator">See it</a></li>
-              <li><a href="#capacity">What it costs</a></li>
-              <li><a href="#claim">The claim</a></li>
-              <li><a href="#allocation">Who got it</a></li>
-              <li><a href="#scatter">All 204 languages</a></li>
-              <li><a href="#conclusion">What follows</a></li>
-              <li><a href="#methodology">Method &amp; limits</a></li>
+              <li><a href="#specimen">The specimen</a></li>
+              <li><a href="#tokenizers">Not the writing system</a></li>
+              <li><a href="#surcharge">Floor and surcharge</a></li>
+              <li><a href="#allocation">Who the vocabulary went to</a></li>
+              <li><a href="#scatter">All 204, against speakers</a></li>
+              <li><a href="#falsifiable">The negative space</a></li>
+              <li><a href="#limits">What this does not claim</a></li>
+              <li><a href="#method">Method and provenance</a></li>
             </ol>
           </nav>
 
@@ -69,14 +68,77 @@
         </aside>
 
         <main class="field" id="main">
-          <section class="section" id="opening" aria-busy="true"></section>
-          <section class="section" id="comparator" aria-busy="true"></section>
-          <section class="section" id="capacity" aria-busy="true"></section>
-          <section class="section" id="claim" aria-busy="true"></section>
+          <!-- The cold open is written out here rather than injected by the
+               view, and it is the only section that is.
+
+               Its heading is the page's largest-contentful paint. Rendered from
+               script it could not paint until the bundle, both JSON files and
+               the whole tile grid above it had landed, which measured 2.9s on
+               a throttled connection. As static markup it paints with the first
+               frame. Nothing here is a number: every figure on this page is
+               still substituted from the exported data, including the two spans
+               below, which the view fills in.
+
+               .tile-strip reserves its height in CSS so the heading paints in
+               its final position rather than jumping down when the tiles
+               arrive. -->
+          <section class="section" id="specimen" aria-busy="true">
+            <p class="step-mark specimen-mark">
+              One · a measurement study across
+              <span data-role="n-languages">…</span> languages and
+              <span data-role="n-tokenizers">…</span> tokenizers
+            </p>
+
+            <div class="tile-strip">
+              <div class="columns" role="group" aria-label="Token counts by language"></div>
+            </div>
+
+            <div class="sample-nav">
+              <button type="button" class="chip" data-step="-1">Previous sentence</button>
+              <span class="sample-pos tabular" aria-live="polite"></span>
+              <button type="button" class="chip" data-step="1">Next sentence</button>
+            </div>
+
+            <div class="cold-open">
+              <h2>Most of the surcharge is not the language</h2>
+              <p class="standfirst">
+                Every language except English pays more to say the same thing to
+                a language model. Above is one sentence, in
+                <span data-role="n-hero">…</span> of them, with identical
+                meaning: each tile is one <strong>token</strong> — the chunks a
+                tokenizer cuts text into, the unit you are billed in, and the
+                unit a context window is measured in. In English a token is
+                usually a whole word. Elsewhere it is a fragment of one,
+                sometimes a fragment of a single character. The dashed line is
+                what English costs. Everything past it is the surcharge, and this
+                study is about how much of that is a choice.
+              </p>
+              <p class="try-this">
+                <strong>Try this:</strong> change the tokenizer in the rail and
+                watch the tiles merge. Nothing about the sentences changes — only
+                the vocabulary being charged against them. Swap a language with
+                any column's dropdown, or step through the
+                <span data-role="n-sentences">…</span> sentences.
+              </p>
+            </div>
+
+            <div class="readout" aria-live="polite"></div>
+
+            <form class="freetext" novalidate>
+              <label for="freetext-input">Tile your own sentence</label>
+              <textarea id="freetext-input" rows="2"
+                placeholder="Try a sentence in a language you read — for example, తెలుగు భాషలో ఒక వాక్యం రాయండి."></textarea>
+              <div class="freetext-status" role="status"></div>
+              <div class="tiles" data-role="freetext-tiles" hidden></div>
+            </form>
+          </section>
+          <section class="section" id="tokenizers" aria-busy="true"></section>
+          <section class="section" id="surcharge" aria-busy="true"></section>
           <section class="section" id="allocation" aria-busy="true"></section>
           <section class="section" id="scatter" aria-busy="true"></section>
-          <section class="section" id="conclusion" aria-busy="true"></section>
-          <section class="section" id="methodology" aria-busy="true"></section>
+          <section class="section" id="falsifiable" aria-busy="true"></section>
+          <section class="section" id="limits" aria-busy="true"></section>
+          <section class="section" id="method" aria-busy="true"></section>
         </main>
       </div>
     </div>

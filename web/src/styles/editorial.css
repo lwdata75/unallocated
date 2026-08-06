@@ -1,15 +1,22 @@
-/* The editorial column. Genuinely a column: 68ch, flush left, with the right
-   margin left empty rather than filled with cards. */
+/* The editorial column. Genuinely a column: 66ch of serif, flush left, with the
+   right margin left empty rather than filled with cards. */
 
-.editorial { max-width: 68ch; }
+.editorial { max-width: 66ch; }
 
+/* Subheads are the token face and the body is the serif, so the two never blur
+   into one another the way a bolder weight of the same family would. Small,
+   because a subhead inside a section is a signpost and not a title. */
 .editorial h3 {
   margin-top: var(--s-6);
-  margin-bottom: var(--s-2);
-  font-size: var(--t-20);
+  margin-bottom: var(--s-3);
+  font-size: var(--t-15);
+  letter-spacing: var(--track-data);
 }
 
-.editorial p { margin-bottom: var(--s-3); }
+.editorial p { margin-bottom: var(--s-4); }
+
+/* The paragraph that carries a section's argument before its chart. */
+.editorial-lead { margin-bottom: var(--s-5); }
 
 .editorial ul {
   margin: 0 0 var(--s-4);
@@ -18,9 +25,10 @@
   gap: var(--s-2);
 }
 
-.editorial li { line-height: 1.55; }
+.editorial li { line-height: 1.6; }
 
-.editorial strong { font-weight: 500; }
+.editorial strong { font-weight: 600; }
+.editorial em { font-style: italic; }
 
 .ramp-legend {
   list-style: none;
@@ -36,27 +44,27 @@
   border-radius: 2px;
   /* Same reasoning as the comparator badge: the outline carries the 3:1, the
      fill is redundant with the label beside it. */
-  border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 55%, transparent);
 }
 
 /* A generated figure set inline in prose.
 
-   Martian Mono runs visibly larger than Instrument Sans at the same nominal
-   size, so an inline number used to look like the font had changed mid-sentence
-   and pushed the line apart. Scaled to 0.9em with tightened tracking, and
+   Martian Mono runs visibly larger than the serif at the same nominal size, so
+   an inline number would otherwise look like the font had changed mid-sentence
+   and push the line apart. Scaled to 0.82em with tightened tracking, and
    line-height pinned to inherit so a line containing a number keeps the same
-   rhythm as one without. */
+   rhythm as one without. The underline is what marks it as checkable. */
 .fig {
   font-family: var(--data);
-  font-size: 0.9em;
+  font-size: 0.82em;
   letter-spacing: -0.02em;
   line-height: inherit;
   font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
   cursor: help;
 }
 .fig:hover, .fig:focus-visible {
-  border-bottom-color: color-mix(in srgb, var(--marine) 60%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--accent) 60%, transparent);
 }
 .fig-missing { color: var(--ramp-5_0); border-bottom-style: solid; }
 
@@ -73,36 +81,37 @@
   font-family: var(--data);
   font-size: 0.85em;
   padding: 0 3px;
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
   border-radius: 3px;
 }
 .source-evidence {
   display: block;
   margin-top: var(--s-1);
   font-size: var(--t-13);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .colophon {
   margin-top: var(--s-5);
   padding-top: var(--s-3);
-  border-top: 1px solid var(--edge);
+  border-top: 1px solid var(--hairline);
   font-size: var(--t-13);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
-/* "Step 2 of 4 · the argument". The page is an argument in four moves, and a
-   reader dropped in by an anchor link needs to know which one they landed on
-   without scrolling back to the rail. */
+/* The section's number, spelled out. A reader dropped in by an anchor link
+   needs to know where in the argument they landed without scrolling back to the
+   rail — and the rail carries the same numbering. */
 .step-mark {
-  margin-bottom: var(--s-2);
-  font-family: var(--data);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--ink-2);
+  margin-bottom: var(--s-3);
+  font-family: var(--label);
+  font-size: var(--t-11);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.caption { color: var(--ink-2); }
+.caption { color: var(--text-muted); font-size: var(--t-15); line-height: 1.55; }
 
 /* Operating instructions, as against how to read the chart. A step down in size
    so the two do not read as one seven-line wall between reader and plot. */
@@ -127,19 +136,19 @@
   caption-side: bottom;
   margin-top: var(--s-2);
   font-size: var(--t-12);
-  color: var(--ink-2);
+  color: var(--text-muted);
   text-align: left;
 }
 .figures th, .figures td {
   padding: var(--s-2) var(--s-3);
-  border-bottom: 1px solid var(--edge);
+  border-bottom: 1px solid var(--hairline);
   text-align: right;
 }
 .figures thead th {
   font-weight: 500;
   font-size: var(--t-12);
-  color: var(--ink-2);
-  border-bottom-color: color-mix(in srgb, var(--ink) 35%, transparent);
+  color: var(--text-muted);
+  border-bottom-color: color-mix(in srgb, var(--text) 35%, transparent);
 }
 .figures th[scope="row"] { text-align: left; font-weight: 400; }
 .figures tbody tr:last-child th,
@@ -155,7 +164,7 @@
 }
 .process li { line-height: 1.55; }
 .process strong { font-weight: 500; }
-.process::marker { color: var(--ink-2); }
+.process::marker { color: var(--text-muted); }
 
 /* Each gate beside the specific mistake it exists to catch. A check whose
    failure mode you cannot name is decoration, and a two-column table is the
@@ -171,33 +180,33 @@
   caption-side: bottom;
   margin-top: var(--s-2);
   font-size: var(--t-12);
-  color: var(--ink-2);
+  color: var(--text-muted);
   text-align: left;
 }
 .gates thead th {
   padding: var(--s-2) var(--s-3) var(--s-2) 0;
   font-weight: 500;
   font-size: var(--t-12);
-  color: var(--ink-2);
-  border-bottom: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+  color: var(--text-muted);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 35%, transparent);
 }
 .gates tbody th {
   width: 15rem;
   padding: var(--s-3) var(--s-3) var(--s-3) 0;
   font-weight: 500;
   vertical-align: top;
-  border-bottom: 1px solid var(--edge);
+  border-bottom: 1px solid var(--hairline);
 }
 .gates tbody td {
   padding: var(--s-3) 0;
   vertical-align: top;
-  color: var(--ink-2);
+  color: var(--text-muted);
   line-height: 1.5;
-  border-bottom: 1px solid var(--edge);
+  border-bottom: 1px solid var(--hairline);
 }
 
 @media (max-width: 640px) {
   .gates tbody th, .gates tbody td { display: block; width: auto; border-bottom: none; }
   .gates tbody th { padding-bottom: var(--s-1); }
-  .gates tbody td { padding-top: 0; padding-bottom: var(--s-3); border-bottom: 1px solid var(--edge); }
+  .gates tbody td { padding-top: 0; padding-bottom: var(--s-3); border-bottom: 1px solid var(--hairline); }
 }

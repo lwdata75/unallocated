@@ -24,6 +24,14 @@
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
+  /* Reserved, so the heading below paints in its final position on the first
+     frame instead of jumping down when the tiles arrive. Measured at 692px on
+     the default five languages and tokenizer, and it is 692px at every viewport
+     from 380 to 1920 because this strip scrolls sideways rather than reflowing.
+     A taller tokenizer grows it from here, which pushes content down once — the
+     same shift the tile animation already causes and small enough to leave
+     cumulative layout shift at 0.02. */
+  min-height: 692px;
 }
 
 .tile-strip[data-scrollable="true"] {
@@ -58,7 +66,7 @@
   height: 0;
   /* Faint: it crosses the taller columns' tiles and must not read as a
      strikethrough over them. */
-  border-top: 1px dashed color-mix(in srgb, var(--ink) 16%, transparent);
+  border-top: 1px dashed color-mix(in srgb, var(--text) 16%, transparent);
   pointer-events: none;
   z-index: 2;
   transition: transform var(--dur-tile) var(--ease);
@@ -74,9 +82,9 @@
   transform: translateY(-50%);
   white-space: nowrap;
   font-size: 11px;
-  color: var(--ink-2);
-  background: var(--field-0);
-  border: 1px solid var(--edge);
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
   padding: 1px var(--s-2);
   border-radius: 999px;
   transition: left var(--dur-tile) var(--ease);
@@ -100,7 +108,7 @@
 .column .tiles { align-self: start; }
 .column .column-stats-block { align-self: end; }
 
-.column-head { display: flex; flex-direction: column; gap: var(--s-1); min-height: 74px; }
+.column-head { display: flex; flex-direction: column; gap: var(--s-1); min-height: 68px; }
 
 .column-lang {
   display: flex;
@@ -112,11 +120,11 @@
   flex: 1 1 auto;
   min-width: 0;
   padding: var(--s-1) var(--s-2);
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: var(--t-13);
-  color: var(--ink);
-  background: var(--field-1);
-  border: 1px solid var(--edge);
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
@@ -132,7 +140,7 @@
 }
 .column-count .unit {
   font-size: var(--t-12);
-  color: var(--ink-2);
+  color: var(--text-muted);
   margin-left: var(--s-1);
 }
 
@@ -148,35 +156,35 @@
   align-self: flex-start;
   padding: 1px var(--s-2);
   border-radius: 999px;
-  border: 1px solid var(--edge);
-  background: var(--field-1);
-  color: var(--ink);
+  border: 1px solid var(--hairline);
+  background: var(--surface-raised);
+  color: var(--text);
   font-family: var(--data);
   font-size: var(--t-12);
   line-height: 1.6;
   white-space: nowrap;
 }
-.badge[data-parity="true"] { color: var(--ink-2); }
+.badge[data-parity="true"] { color: var(--text-muted); }
 
 /* Figures for the sentence tiled below. Sits with the count, in the same
    register as the tiles. */
 .sentence-stats {
   margin-top: var(--s-1);
   font-size: var(--t-12);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .sentence-stats dl { margin: 0; display: grid; gap: 1px; }
 .sentence-stats dl > div { display: flex; justify-content: space-between; gap: var(--s-2); }
 .stats-head {
   margin: 0 0 2px;
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: 11px;
   letter-spacing: 0.03em;
-  color: var(--ink-2);
+  color: var(--text-muted);
   opacity: 0.85;
 }
 .sentence-stats dt, .sentence-stats dd { margin: 0; display: inline; }
-.sentence-stats dd { color: var(--ink); font-variant-numeric: tabular-nums; }
+.sentence-stats dd { color: var(--text); font-variant-numeric: tabular-nums; }
 
 /* Corpus medians. Deliberately recessed onto their own surface behind a rule:
    they are a different statistic from the per-sentence figures above, and a
@@ -184,8 +192,8 @@
 .column-stats-block {
   margin-top: var(--s-3);
   padding: var(--s-2) var(--s-2) var(--s-1);
-  border-top: 1px solid var(--edge);
-  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  border-top: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--text) 3%, transparent);
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 .column-stats {
@@ -193,14 +201,14 @@
   display: grid;
   gap: 1px;
   font-size: var(--t-12);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .column-stats-head {
   margin: 0 0 var(--s-1);
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: 11px;
   letter-spacing: 0.03em;
-  color: var(--ink-2);
+  color: var(--text-muted);
   opacity: 0.85;
   cursor: help;
 }
@@ -209,11 +217,11 @@
   justify-content: space-between;
   align-items: baseline;
   gap: var(--s-2);
-  border-bottom: 1px solid color-mix(in srgb, var(--edge) 45%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline) 45%, transparent);
   padding: 1px 0;
 }
 .column-stats dt { cursor: help; }
-.column-stats dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.column-stats dd { margin: 0; color: var(--text); font-variant-numeric: tabular-nums; }
 
 /* The tile field itself.
 
@@ -230,8 +238,8 @@
   align-content: flex-start;
   gap: 2px;               /* the seam */
   padding: var(--s-1);
-  background: color-mix(in srgb, var(--ink) 4%, transparent);
-  border: 1px solid var(--edge);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius);
   min-height: 60px;
 }
@@ -239,16 +247,16 @@
 .tiles[hidden] { display: none; }
 
 .tile {
-  --tile-face: var(--field-1);
+  --tile-face: var(--surface-raised);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  height: 22px;
+  height: 20px;
   padding: 0 1px;
   overflow: hidden;
   background: var(--tile-face);
-  border: 1px solid color-mix(in srgb, var(--edge) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hairline) 85%, transparent);
   border-radius: 3px;
   box-shadow: inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
   font-family: var(--data);
@@ -281,7 +289,43 @@
   padding-left: 2px;
   background: var(--tile-face);
   mask-image: none;
-  color: var(--ink-2);
+  color: var(--text-muted);
+}
+
+/* The one load sequence on the site. Tiles arrive in reading order, in twelve
+   waves, and the whole thing is over inside 900ms whether a column holds 25
+   tiles or 325. Runs once, on first paint: every later re-tile is a tokenizer
+   change, and that has the FLIP, which carries information this does not.
+
+   Twelve enumerated rules rather than one rule reading a per-tile custom
+   property, because an inline style makes an element's computed style
+   unshareable and 190 of them cost ~4ms on every style recalc for the rest of
+   the session. views/comparator.ts strips the attributes once it is done.
+
+   Opacity and transform only, so the sequence is entirely on the compositor and
+   never relayouts the grid it is revealing. */
+.columns[data-reveal="true"] .tile {
+  animation: tile-in 380ms var(--ease-spring) both;
+}
+.columns[data-reveal="true"] .tile[data-wave="0"] { animation-delay: 0ms; }
+.columns[data-reveal="true"] .tile[data-wave="1"] { animation-delay: 30ms; }
+.columns[data-reveal="true"] .tile[data-wave="2"] { animation-delay: 60ms; }
+.columns[data-reveal="true"] .tile[data-wave="3"] { animation-delay: 90ms; }
+.columns[data-reveal="true"] .tile[data-wave="4"] { animation-delay: 120ms; }
+.columns[data-reveal="true"] .tile[data-wave="5"] { animation-delay: 150ms; }
+.columns[data-reveal="true"] .tile[data-wave="6"] { animation-delay: 180ms; }
+.columns[data-reveal="true"] .tile[data-wave="7"] { animation-delay: 210ms; }
+.columns[data-reveal="true"] .tile[data-wave="8"] { animation-delay: 240ms; }
+.columns[data-reveal="true"] .tile[data-wave="9"] { animation-delay: 270ms; }
+.columns[data-reveal="true"] .tile[data-wave="10"] { animation-delay: 300ms; }
+.columns[data-reveal="true"] .tile[data-wave="11"] { animation-delay: 330ms; }
+
+@keyframes tile-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .columns[data-reveal="true"] .tile { animation: none; }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -291,18 +335,27 @@
 :root[data-theme="light"] .tile { box-shadow: inset 0 1px 0 color-mix(in srgb, white 45%, transparent); }
 
 /* A token that carries no glyph: byte-level BPE split a character across two
-   tokens, and this is the continuation half. You are paying for it. Shown as a
-   dotted circle rather than silently duplicating or dropping the character. */
+   tokens and this is the continuation half. You are paying for it.
+
+   Hollow, and genuinely so — no fill, no substituted glyph, the same footprint
+   as a tile with a word in it. This is the site's motif at the level where it
+   is true one token at a time: the cell is empty because the token is empty. It
+   used to be filled and stamped with a dotted circle, which made an absence
+   look like a character.
+
+   The dashed edge is what keeps this from reading as a font failure, and it is
+   a second channel beside the emptiness rather than colour carrying it alone.
+   Every one of these still has its own aria-label and tooltip. */
 .tile[data-empty="true"] {
-  --tile-face: color-mix(in srgb, var(--ink) 7%, transparent);
-  color: var(--ink-2);
+  --tile-face: transparent;
   border-style: dashed;
+  border-color: color-mix(in oklab, var(--text) 55%, transparent);
+  box-shadow: none;
   mask-image: none;
 }
-.tile[data-empty="true"]::after { content: "\25CC"; font-size: 10px; opacity: 0.75; }
 
 /* Leading spaces are part of the token; make them visible as a seam, not a gap. */
-.tile[data-space="true"] { --tile-face: color-mix(in srgb, var(--ink) 3%, transparent); }
+.tile[data-space="true"] { --tile-face: color-mix(in srgb, var(--text) 3%, transparent); }
 
 .tiles[data-loading="true"] { opacity: 0.45; }
 
@@ -315,12 +368,12 @@
   max-width: 68ch;
   margin-top: var(--s-3);
   padding-left: var(--s-3);
-  border-left: 2px solid color-mix(in srgb, var(--marine) 45%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
   font-size: var(--t-15);
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
-.try-this strong { color: var(--ink); font-weight: 500; }
+.try-this strong { color: var(--text); font-weight: 500; }
 
 /* Floor and neglect are the two ideas the study turns on, and they appear in
    the columns above as a bare pair of numbers. This is where they are named. */
@@ -331,7 +384,7 @@
   gap: var(--s-3);
   font-size: var(--t-13);
   line-height: 1.5;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 .readout p { margin: 0; }
 .readout-spread:empty { display: none; }
@@ -341,11 +394,11 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--s-3) var(--s-5);
   padding: var(--s-3) 0;
-  border-top: 1px solid var(--edge);
-  border-bottom: 1px solid var(--edge);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
 }
 .readout-key strong {
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--data);
   font-size: 0.92em;
   font-weight: 400;
@@ -356,10 +409,10 @@
    describes the state on screen rather than stating a general fact. */
 .readout-case {
   padding: var(--s-3);
-  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
   border-radius: var(--radius-sm);
 }
-.readout-case strong { color: var(--ink); font-weight: 500; }
+.readout-case strong { color: var(--text); font-weight: 500; }
 
 /* ------------------------------------------------------------ free text */
 
@@ -372,17 +425,17 @@
   min-height: 76px;
   resize: vertical;
   padding: var(--s-3);
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: var(--t-15);
   line-height: 1.5;
-  color: var(--ink);
-  background: var(--field-1);
-  border: 1px solid var(--edge);
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius);
 }
-.freetext textarea::placeholder { color: var(--ink-2); }
+.freetext textarea::placeholder { color: var(--text-muted); }
 
-.freetext-status { font-size: var(--t-12); color: var(--ink-2); min-height: 1.2em; }
+.freetext-status { font-size: var(--t-12); color: var(--text-muted); min-height: 1.2em; }
 
 @media (max-width: 960px) {
   .tile-strip {

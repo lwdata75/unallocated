@@ -32,12 +32,58 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-/** UI and data faces. Three roles, three weights, none of them defaults. */
+/**
+ * Chrome-tier faces. Two families, not three.
+ *
+ * The display tier is the same monospace that renders the tokens. That is the
+ * one type decision on this site that could not be lifted onto a different
+ * subject: a heading set in the face the specimen is set in looks like it has
+ * been through the tokenizer too, and the wordmark reads as a measurement
+ * rather than as a brand. It is a wide face, so it carries only short strings —
+ * wordmark, step marks, section titles, every number.
+ *
+ * Prose is Newsreader, variable on optical size, so the same file sets a 44px
+ * lede and 17px body without either looking like the other scaled. Low contrast
+ * on purpose: the high-contrast display serif is the current house style of
+ * generated pages and this is a paper, not a poster.
+ *
+ * Archivo and Instrument Sans are gone. Two families is fewer bytes than three
+ * and the site no longer has a sans register to be inconsistent about.
+ */
+/*
+ * One weight per entry, deliberately. Asking for `wght@400;700` in a single
+ * request makes Google serve the *variable* file, which is 47 KB of Latin for
+ * the mono against 21 KB for the two static instances, and 140 KB against 71 KB
+ * for the serif. Splitting the request is worth roughly 90 KB on a page whose
+ * performance floor is 93.
+ *
+ * The optical-size axis goes with it. Newsreader ships one, and it would have
+ * been the reason to choose a variable file, but it costs 57 KB of Latin
+ * against 22 KB pinned — for a page with four heading sizes that is not a
+ * trade worth making.
+ */
 const UI_FAMILIES = [
-  "Archivo:wght@600",
-  "Instrument+Sans:wght@400;500",
   "Martian+Mono:wght@400",
+  "Martian+Mono:wght@700",
+  "Newsreader:wght@400",
+  "Newsreader:wght@600",
+  "Newsreader:ital,wght@1,400",
 ];
+
+/**
+ * Of those, the ones the first screen actually paints with: the wordmark and
+ * the cold-open title (mono 700), every token tile and every number (mono 400),
+ * and the prose under the specimen (serif 400). Bold and italic prose appear
+ * further down and can arrive on their own.
+ *
+ * Preloading all five put 92 KB in front of first paint. These three are 43 KB,
+ * which is less than the three families this replaced.
+ */
+const PRELOAD_FAMILIES = new Set([
+  "Martian+Mono:wght@400",
+  "Martian+Mono:wght@700",
+  "Newsreader:wght@400",
+]);
 
 /**
  * Per-script faces. Keyed by the ISO 15924 code the pipeline puts in each
@@ -139,7 +185,9 @@ async function main() {
     process.stdout.write(`ui   ${spec}\n`);
     const css = await localise(await fetchCss(spec, "swap"));
     ui.push(minify(css));
-    for (const url of latinSubsets(css)) preloads.add(url);
+    if (PRELOAD_FAMILIES.has(spec)) {
+      for (const url of latinSubsets(css)) preloads.add(url);
+    }
   }
   await writeFile(UI_CSS_OUT, `${banner}\n${ui.join("")}`, "utf8");
 

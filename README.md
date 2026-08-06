@@ -68,7 +68,9 @@ pipeline/    Python 3.12 (uv). Corpora, tokenizers, metrics, provenance, export.
   sources.toml   every input, hashed, licensed, with substitutions flagged
 web/         Vite + TypeScript frontend, reads web/public/data/*.json
 data/        raw cache, gitignored, fully regenerable
-docs/BRIEF.md  the original build brief this was written from
+docs/BRIEF.md           the original build brief this was written from
+docs/REDESIGN_BRIEF.md  the visual and narrative redesign brief, which
+                        supersedes the original's palette, type and sections
 METHODOLOGY.md
 ```
 
@@ -106,16 +108,34 @@ npm run fonts     # self-hosts every face into public/fonts/ (~13 MB, once)
 npm run dev
 ```
 
-Vite + TypeScript, vanilla DOM, D3 for scales and the scatter. Two views ship:
-**the comparator**, which puts one sentence in five languages side by side as
-physical token tiles with a parity line at the English column's height, and
-**the scatter**, plotting cost against speaker population.
+Vite + TypeScript, vanilla DOM, D3 for scales and the scatter. Eight sections,
+in the order the argument runs:
+
+1. **The specimen** — one sentence, five languages, every token a physical tile,
+   with a parity line at the English column's height. It opens the page before
+   any prose does, because the tiles make the finding without being read.
+2. **It is not the writing system** — the same Telugu sentences priced by four
+   tokenizers. One variable moves and it is not the language.
+3. **Floor and surcharge** — the decomposition, and the site's signature
+   element: the tokens a writing system needs are drawn as solid cells and the
+   tokens nobody allocated vocabulary for as hollow ones, so the unallocated
+   half is a visible absence rather than a percentage in a caption.
+4. **Who the vocabulary went to** — every language against every tokenizer, as a
+   searchable, sortable matrix. The stripes are the finding.
+5. **All 204, against speakers** — the scatter, cost against speaker population.
+6. **The negative space is falsifiable** — each language drawn twice, at its
+   cheapest and most expensive measured vocabulary, and the test that would
+   prove the claim wrong.
+7. **What this does not claim** — a section, not a footnote.
+8. **Method and provenance** — the pipeline stages, the assumptions as choices,
+   and every gate beside the specific mistake it exists to catch.
 
 ### Verifying
 
 ```
 npm run build && npm run preview -- --port 4321 &
-npm run verify        # glyph coverage, re-tiling, share card, 380px, contrast
+npm run verify        # glyph coverage, re-tiling, share card, 380px,
+                      # contrast, and the behaviour gate below
 npm run lighthouse
 ```
 
@@ -124,9 +144,23 @@ no browser download. It fails if any of the 25 showcase languages falls back to
 a system font, if switching tokenizers stops re-tiling, if the share card is not
 exactly 1200×630, or if the page overflows horizontally at 380px.
 
-Last measured: **Lighthouse performance 93, accessibility 100, best practices
-100**; all 25 showcase scripts rendering from self-hosted faces; every contrast
-pair meeting its threshold.
+`npm run contrast` measures rendered elements rather than token values, because
+most surfaces here are semi-transparent; it composites backgrounds up the
+ancestor chain, resolves every colour through the browser's own parser so the
+OKLCH palette is read correctly, and checks all 192 rendered heatmap cells
+rather than sampling them.
+
+`npm run behaviour` covers what a screenshot cannot: that the load sequence runs
+and then removes its own staging attributes, that the scroll-linked
+decomposition actually separates, that `prefers-reduced-motion` lands on the end
+state and not the start state, and that switching tokenizer grows the hollow
+half of the decomposition while leaving the floor exactly where it is.
+
+Last measured: **Lighthouse performance 94, accessibility 100, best practices
+100** (total blocking time 80 ms, first contentful paint 1.7 s, cumulative
+layout shift 0.039); all 25 showcase scripts rendering from self-hosted faces;
+every contrast pair meeting its threshold in both themes, worst case 4.58:1 on
+a heatmap cell.
 
 ## Provenance and licensing
 

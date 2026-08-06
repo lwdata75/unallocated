@@ -11,30 +11,30 @@
 .inline-field { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--t-13); }
 .inline-field select {
   padding: var(--s-1) var(--s-2);
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: var(--t-13);
-  color: var(--ink);
-  background: var(--field-1);
-  border: 1px solid var(--edge);
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
 }
 
-.brush-readout { font-size: var(--t-12); color: var(--ink-2); }
+.brush-readout { font-size: var(--t-12); color: var(--text-muted); }
 
 .chip {
   padding: var(--s-1) var(--s-3);
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: var(--t-12);
-  color: var(--ink);
-  background: var(--field-1);
-  border: 1px solid var(--edge);
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
   border-radius: 999px;
   cursor: pointer;
 }
-.chip:hover { border-color: var(--marine); }
+.chip:hover { border-color: var(--accent); }
 
 .sample-nav { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-3); }
-.sample-pos { font-size: var(--t-12); color: var(--ink-2); }
+.sample-pos { font-size: var(--t-12); color: var(--text-muted); }
 
 /* Full-bleed so the leftmost dots pass under the rail's glass. */
 .scatter-figure {
@@ -47,40 +47,40 @@
 .axis-tick {
   font-family: var(--data);
   font-size: 13px;
-  fill: var(--ink-2);
+  fill: var(--text-muted);
 }
 .axis-title {
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: 14px;
   font-weight: 500;
-  fill: var(--ink-2);
+  fill: var(--text-muted);
 }
 
 .dots circle { cursor: crosshair; transition: fill-opacity var(--dur-quick) var(--ease); }
-.dots circle:focus-visible { outline: 2px solid var(--marine); outline-offset: 2px; }
+.dots circle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .brush .selection {
-  fill: var(--marine);
+  fill: var(--accent);
   fill-opacity: 0.08;
-  stroke: var(--marine);
+  stroke: var(--accent);
   stroke-opacity: 0.5;
 }
 
 .axis-note {
   font-family: var(--data);
   font-size: 12px;
-  fill: var(--ink-2);
+  fill: var(--text-muted);
 }
 
 /* Labels on the extremes. The dot at 14x carried the whole story and was
    anonymous without a hover; touch users had no hover to give it. */
 .point-label {
-  font-family: var(--ui);
+  font-family: var(--label);
   font-size: 13px;
   font-weight: 500;
-  fill: var(--ink);
+  fill: var(--text);
   paint-order: stroke;
-  stroke: var(--field-0);
+  stroke: var(--surface);
   stroke-width: 3px;
   stroke-linejoin: round;
   pointer-events: none;
@@ -89,7 +89,7 @@
 .scatter-legend { margin-top: var(--s-3); align-items: center; }
 .scatter-legend .legend-title {
   font-size: var(--t-12);
-  color: var(--ink-2);
+  color: var(--text-muted);
   margin-right: var(--s-2);
 }
 
@@ -112,23 +112,23 @@
   font-family: var(--data);
   font-size: var(--t-12);
   font-weight: 400;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
-.lang-card .card-sub { margin-top: 2px; font-size: var(--t-12); color: var(--ink-2); }
+.lang-card .card-sub { margin-top: 2px; font-size: var(--t-12); color: var(--text-muted); }
 /* Pinned: the card stops following the cursor and takes pointer events so it
    can be read on a touch screen, where there is no hover. */
 .lang-card[data-pinned="true"] {
   pointer-events: auto;
-  border-color: color-mix(in srgb, var(--marine) 55%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 .card-pin {
   margin-top: var(--s-2);
   font-size: var(--t-12);
-  color: var(--marine);
+  color: var(--accent);
 }
 .lang-card dl { margin: var(--s-3) 0 0; display: grid; gap: 2px; }
 .lang-card dl div { display: flex; justify-content: space-between; gap: var(--s-3); }
-.lang-card dt { font-size: var(--t-12); color: var(--ink-2); }
+.lang-card dt { font-size: var(--t-12); color: var(--text-muted); }
 .lang-card dd { margin: 0; font-size: var(--t-12); }
 
 /* Below 720px the scatter becomes a sorted bar list. Squeezing 200 dots into a
@@ -136,9 +136,9 @@
 .bar-list .bars { list-style: none; margin: var(--s-4) 0 0; padding: 0; display: grid; gap: var(--s-2); }
 .bar-list li { display: grid; grid-template-columns: 8.5rem 1fr 3.5rem; align-items: center; gap: var(--s-2); }
 .bar-name { font-size: var(--t-13); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bar-track { height: 10px; background: color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 2px; overflow: hidden; }
+.bar-track { height: 10px; background: color-mix(in srgb, var(--text) 7%, transparent); border-radius: 2px; overflow: hidden; }
 .bar-fill { display: block; height: 100%; border-radius: 2px; }
-.bar-value { font-size: var(--t-12); text-align: right; color: var(--ink-2); }
+.bar-value { font-size: var(--t-12); text-align: right; color: var(--text-muted); }
 
 @media (max-width: 960px) {
   .scatter-figure { margin-left: calc(-1 * var(--s-4)); padding-left: var(--s-4); }
@@ -152,14 +152,14 @@
    supports. Where the band is wide, the fit is not constrained — which is most
    of the right-hand tail. */
 .trend-band {
-  fill: var(--ink);
+  fill: var(--text);
   fill-opacity: 0.07;
   stroke: none;
   pointer-events: none;
 }
 .trend-line {
   fill: none;
-  stroke: var(--ink);
+  stroke: var(--text);
   stroke-opacity: 0.45;
   stroke-width: 2;
   stroke-dasharray: 6 4;
@@ -167,7 +167,7 @@
 }
 
 .point-labels .leader {
-  stroke: var(--ink);
+  stroke: var(--text);
   stroke-opacity: 0.45;
   stroke-width: 1;
   pointer-events: none;

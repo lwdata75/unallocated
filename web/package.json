@@ -13,7 +13,8 @@
     "shots": "node scripts/shots.mjs",
     "contrast": "node scripts/contrast.mjs",
     "lighthouse": "lighthouse http://localhost:4321/ --only-categories=performance,accessibility,best-practices --chrome-flags=\"--headless=new\" --view",
-    "verify": "npm run shots && npm run contrast"
+    "behaviour": "node scripts/behaviour.mjs",
+    "verify": "npm run shots && npm run contrast && npm run behaviour"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.2",

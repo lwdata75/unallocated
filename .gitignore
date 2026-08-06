@@ -17,6 +17,7 @@ web/dist/
 
 # verification output: screenshots and Lighthouse reports, regenerable
 web/scripts/shots/
+web/lh.json
 
 # os
 Thumbs.db

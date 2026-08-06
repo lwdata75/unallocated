@@ -69,8 +69,8 @@ export function mountConclusion(root: HTMLElement, data: Dataset): void {
   root.innerHTML = `
     <div class="editorial">
       <div class="section-head">
-        <p class="step-mark">Step 6 of 7 · what follows</p>
-        <h2>The gap between the two dots is the choice</h2>
+        <p class="step-mark">Six</p>
+        <h2>The negative space is falsifiable</h2>
         <p class="caption">
           Each language below is drawn twice: once at the cheapest vocabulary
           measured here, once at the most expensive. The sentences behind both

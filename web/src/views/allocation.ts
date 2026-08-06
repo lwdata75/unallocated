@@ -20,6 +20,7 @@
 
 import type { Dataset, Language } from "../lib/data";
 import { fertilityColour, readableInk, rampStops } from "../lib/ramp";
+import { figureSpan } from "../lib/figures";
 import { getState, setState, subscribe } from "../lib/state";
 import * as fmt from "../lib/format";
 
@@ -40,6 +41,7 @@ interface Row {
 
 export function mountAllocation(root: HTMLElement, data: Dataset): void {
   const tokenizers = data.languages.tokenizers;
+  const fig = (key: string): string => figureSpan(data.headline.figures, key);
   const regions = [
     ...new Set(data.languages.languages.flatMap((l) => l.region.split(";"))),
   ]
@@ -54,17 +56,32 @@ export function mountAllocation(root: HTMLElement, data: Dataset): void {
 
   root.innerHTML = `
     <div class="section-head">
-      <p class="step-mark">Step 4 of 7 · the scope of the choice</p>
+      <p class="step-mark">Four</p>
       <h2>Who the vocabulary went to</h2>
+      <p class="standfirst">
+        Nobody bought "multilingual". They bought a list. This is the list, and
+        the edges of it are legible in the measurements.
+      </p>
+    </div>
+
+    <div class="editorial editorial-lead">
+      <p>
+        BLOOM was built multilingual-first with a 250,000-token vocabulary. Its
+        median fertility across all ${data.languages.languages.length} languages
+        is ${fig("median_fertility_bloom_vs_o200k")} for OpenAI's o200k — very
+        slightly <em>worse</em> overall. On Bengali it costs
+        ${fig("bengali_bloom_vs_o200k")}. It wins on
+        ${fig("bloom_beats_o200k_count")} languages and loses on the rest, and
+        ROOTS, the corpus it was trained on, covered roughly 46 languages. A
+        vocabulary allocated multilingually is not uniformly better. It is better
+        exactly where somebody pointed it.
+      </p>
       <p class="caption">
         Every language down the side, every tokenizer across the top, coloured by
         what that pairing costs against English. If tokenizers had simply been
-        getting better, each column would shade evenly. They do not. The stripes
-        are where somebody's training data stopped.
-      </p>
-      <p class="caption caption-fine">
-        Search or filter to find a language, click any row to open it in full, and
-        sort by the last column to see where the largest choices were made.
+        getting better, each column would shade evenly. They do not. Search or
+        filter to find a language, click any row to open it in full, and sort by
+        the last column to see where the largest choices were made.
       </p>
     </div>
 

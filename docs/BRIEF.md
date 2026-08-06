@@ -1,3 +1,11 @@
+> **Superseded in part by [REDESIGN_BRIEF.md](REDESIGN_BRIEF.md).** This is the
+> brief the study was originally built from and it is kept as the record of
+> what was commissioned. Its sections on palette, typography and the page's
+> narrative order no longer describe the site: the ramp is sequential rather
+> than diverging, the chrome is set in two families rather than three, and
+> the page runs in the eight sections the redesign brief sets out. Everything
+> it says about the pipeline, the measurements and the gates still holds.
+
 <!-- SPDX-License-Identifier: MIT -->
 
 > **This is the original build brief, preserved verbatim.**

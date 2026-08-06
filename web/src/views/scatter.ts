@@ -57,7 +57,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
 
   root.innerHTML = `
     <div class="section-head">
-      <p class="step-mark">Step 5 of 7 · the whole population</p>
+      <p class="step-mark">Five</p>
       <h2>What each language costs, against how many people speak it</h2>
       <p class="caption">
         Five languages made the case. Here are all ${languages.length}. Every dot
@@ -277,7 +277,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
       .attr("fill", (d) => shareColour(d.neglectShare))
       .attr("fill-opacity", (d) => (dimmed(d) ? 0.12 : 0.72))
       .attr("stroke", (d) =>
-        highlight && d.language.script === highlight ? "var(--marine-plain)" : "var(--ink)"
+        highlight && d.language.script === highlight ? "var(--accent)" : "var(--text)"
       )
       .attr("stroke-opacity", (d) =>
         dimmed(d) ? 0.1 : highlight && d.language.script === highlight ? 0.95 : 0.35
@@ -440,7 +440,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
       gGrid.append("line")
         .attr("x1", px).attr("x2", px)
         .attr("y1", M.top).attr("y2", H - M.bottom)
-        .attr("stroke", "var(--edge)")
+        .attr("stroke", "var(--hairline)")
         .attr("stroke-opacity", tick === 1 ? 0.95 : 0.45)
         .attr("stroke-dasharray", tick === 1 ? "none" : "2 4");
       gAxes.append("text")
@@ -457,7 +457,7 @@ export function mountScatter(root: HTMLElement, data: Dataset): void {
       gGrid.append("line")
         .attr("x1", M.left).attr("x2", W - M.right)
         .attr("y1", py).attr("y2", py)
-        .attr("stroke", "var(--edge)")
+        .attr("stroke", "var(--hairline)")
         .attr("stroke-opacity", 0.45)
         .attr("stroke-dasharray", "2 4");
       gAxes.append("text")

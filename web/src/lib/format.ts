@@ -34,3 +34,19 @@ export function neglect(value: number): string {
 export function vocab(value: number): string {
   return `${Math.round(value / 1000)}k`;
 }
+
+/**
+ * "a" or "an" for a number the reader will say out loud.
+ *
+ * The window sizes are generated, so the article in front of them has to be
+ * too — hardcoding "a" gave "a 8,000-token window" the moment 8k was selected.
+ * The English rule is about the spoken form, and the only spoken forms that
+ * start with a vowel are the eights ("eight", "eighty", "eight thousand") and
+ * the elevens and eighteens when read as hundreds.
+ */
+export function article(value: number): string {
+  const digits = String(Math.abs(Math.round(value)));
+  if (digits[0] === "8") return "an";
+  if (digits.length === 4 && (digits.startsWith("11") || digits.startsWith("18"))) return "an";
+  return "a";
+}

@@ -39,39 +39,26 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     .filter((l) => sampleLanguages.has(l.code))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  root.innerHTML = `
-    <div class="section-head">
-      <p class="step-mark">Step 1 of 7 · the demonstration</p>
-      <h2>The same sentence, five languages</h2>
-      <p class="caption">
-        Each tile is one token — one unit you are billed for, one unit of the
-        context window. The dashed line marks what English costs, so every column
-        that runs past it is the surcharge.
-      </p>
-      <p class="try-this">
-        <strong>Try this:</strong> change the tokenizer in the rail and watch the
-        tiles merge. Nothing about the sentences changes — only the vocabulary
-        being charged against them. Swap a language with any column's dropdown,
-        or step through the ${data.samples.sentences.length} sentences below.
-      </p>
-      <div class="sample-nav">
-        <button type="button" class="chip" data-step="-1">Previous sentence</button>
-        <span class="sample-pos tabular" aria-live="polite"></span>
-        <button type="button" class="chip" data-step="1">Next sentence</button>
-      </div>
-    </div>
-    <div class="tile-strip">
-      <div class="columns" role="group" aria-label="Token counts by language"></div>
-    </div>
-    <div class="readout" aria-live="polite"></div>
-    <form class="freetext" novalidate>
-      <label for="freetext-input">Tile your own sentence</label>
-      <textarea id="freetext-input" rows="2"
-        placeholder="Try a sentence in a language you read — for example, తెలుగు భాషలో ఒక వాక్యం రాయండి."></textarea>
-      <div class="freetext-status" role="status"></div>
-      <div class="tiles" data-role="freetext-tiles" hidden></div>
-    </form>
-  `;
+  // The specimen comes first, before a word of prose. The page used to open on
+  // navigation, an abstract list of section names, and a paragraph — so a
+  // reader met the argument about 900px after meeting the site. The tiles *are*
+  // the argument, and they make it in about two seconds without being read.
+  // Title, standfirst and the definition of "token" sit under them.
+  //
+  // Unlike every other view, this one does not write its own markup: the copy is
+  // in index.html so the heading can paint before the bundle has run. What is
+  // left for here is the four counts, which are read from the data like every
+  // other figure on the page rather than typed into the prose around them.
+  const counts: Array<[string, number]> = [
+    ["n-languages", data.languages.languages.length],
+    ["n-tokenizers", data.languages.tokenizers.length],
+    ["n-hero", getState().heroLanguages.length],
+    ["n-sentences", data.samples.sentences.length],
+  ];
+  for (const [role, value] of counts) {
+    const slot = root.querySelector<HTMLElement>(`[data-role="${role}"]`);
+    if (slot) slot.textContent = spellOut(value);
+  }
 
   const columnsEl = root.querySelector<HTMLElement>(".columns")!;
   const noteEl = root.querySelector<HTMLElement>(".readout")!;
@@ -79,6 +66,8 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
   const textarea = root.querySelector<HTMLTextAreaElement>("#freetext-input")!;
   const statusEl = root.querySelector<HTMLElement>(".freetext-status")!;
   const freeTilesEl = root.querySelector<HTMLElement>('[data-role="freetext-tiles"]')!;
+
+  let firstPaint = true;
 
   const parityLine = document.createElement("div");
   parityLine.className = "parity-line";
@@ -154,6 +143,17 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
 
     posEl.textContent = `Sentence ${state.sampleIndex + 1} of ${data.samples.sentences.length}`;
     noteEl.innerHTML = buildReadout(sentence, state.tokenizer, state.heroLanguages, data);
+
+    // The one load sequence. Tiles arrive in reading order — down the first
+    // column, then the second — rather than all at once, so the specimen builds
+    // itself in front of the reader instead of appearing as a finished block.
+    // Once, on first paint only: every later render is a tokenizer or language
+    // change, and those already have the FLIP below, which is a different and
+    // more informative motion.
+    if (firstPaint) {
+      firstPaint = false;
+      revealTiles(columnsEl);
+    }
 
     requestAnimationFrame(() => {
       markTruncatedTiles(columnsEl);
@@ -345,7 +345,12 @@ function buildColumn(
     badge.textContent = fmt.multiplierVsEnglish(Number(ratio.toFixed(2)));
   }
 
-  head.append(row, count, badge, buildSentenceStats(sentence, code, pieces.length));
+  // No per-sentence floor block here any more. It restated, in six lines per
+  // column, exactly what section three now spends a whole figure on — and those
+  // six lines were what pushed the title of the page 900px down, so the first
+  // screen was tiles and nothing else. The corpus medians below the tiles stay,
+  // because they are the statistic a reader is most likely to want to quote.
+  head.append(row, count, badge);
 
   const script = scriptCode(code);
   ensureScriptFont(script);
@@ -365,45 +370,6 @@ function buildColumn(
   return column;
 }
 
-/**
- * Two registers, kept visually apart.
- *
- * The top group describes the sentence tiled above it. The bottom group is
- * medians over all 997 FLORES sentences. Those are different statistics and a
- * reader who subtracts one from the other gets a wrong answer, so the corpus
- * group is recessed onto its own surface behind a rule and says which corpus it
- * is a median over.
- */
-function buildSentenceStats(
-  sentence: Dataset["samples"]["sentences"][number],
-  code: string,
-  tokenCount: number
-): HTMLElement {
-  const block = document.createElement("div");
-  block.className = "sentence-stats tabular";
-
-  // Per-sentence floor: the fewest tokens any of the eight tokenizers spends on
-  // this exact sentence. Derivable from samples.json, which carries all eight.
-  const perTokenizer = sentence.tokens[code];
-  if (!perTokenizer) return block;
-  const counts = Object.values(perTokenizer).map((ends) => ends.length);
-  if (counts.length === 0) return block;
-  const floor = Math.min(...counts);
-  const excess = Math.max(tokenCount - floor, 0);
-
-  // Header mirrors the corpus block below, so the two registers read as a pair
-  // rather than as one list that happens to be interrupted. dt/dd must sit in a
-  // real <dl>: loose ones in a <div> are an accessibility-tree error.
-  block.innerHTML = `
-    <p class="stats-head">This sentence</p>
-    <dl>
-      <div><dt>Floor</dt><dd>${fmt.tokens(floor)}</dd></div>
-      <div><dt>Above floor</dt><dd>${excess === 0 ? "0" : `+${fmt.tokens(excess)}`}</dd></div>
-    </dl>`;
-  block.title = "For this sentence: the fewest tokens any of the eight tokenizers spends on it";
-  return block;
-}
-
 function buildStats(language: Language | undefined, tokenizer: string): HTMLElement {
   // A <dl> may only contain dt/dd pairs (optionally wrapped in a div), so the
   // caption lives outside it rather than as a stray child.
@@ -417,10 +383,13 @@ function buildStats(language: Language | undefined, tokenizer: string): HTMLElem
   const floor = language.floors?.flores ?? language.floor;
   const excess = Math.max(metrics.tokens - floor, 0);
 
+  // "Surcharge", not "neglect". The exported field is still `neglect` because
+  // that is what the pipeline calls it, but the page has one name for the idea
+  // and it is the one in the heading of section three.
   const rows: Array<[string, string, string]> = [
     ["Floor", `${fmt.tokens(floor)}`, "Fewest median tokens any of the eight tokenizers achieves"],
     [
-      "Neglect",
+      "Surcharge",
       excess === 0 ? "0" : `+${fmt.tokens(excess)} (${Math.round(metrics.neglect * 100)}%)`,
       "Median tokens above that floor: vocabulary never allocated to this language",
     ],
@@ -482,6 +451,58 @@ function makeTile(piece: string, index: number, start = index): HTMLElement {
   tile.title = piece;
   tile.setAttribute("aria-label", `token ${JSON.stringify(piece)}`);
   return tile;
+}
+
+/**
+ * Small counts read better spelled out in running prose, large ones do not.
+ *
+ * These are still generated: the point of the rule is that no figure in the DOM
+ * is typed by hand, not that every figure has to be a numeral. "in five of them"
+ * would be a hand-typed count; `spellOut(heroLanguages.length)` is not, and it
+ * changes if the default ever does.
+ */
+function spellOut(n: number): string {
+  const words = ["zero", "one", "two", "three", "four", "five", "six",
+                 "seven", "eight", "nine", "ten", "eleven", "twelve"];
+  return n < words.length ? words[n] : fmt.tokens(n);
+}
+
+/** How many groups the load sequence is quantised into, and what each is worth.
+    Twelve reads as continuous at this tile size; the total is
+    `(WAVES - 1) * WAVE_MS` plus the animation, which stays inside 900ms. */
+const WAVES = 12;
+
+/**
+ * Stage the load sequence, then take the staging back out of the DOM.
+ *
+ * The obvious implementation gives each tile an inline `--i` and computes its
+ * delay from that. It is also the expensive one, and expensive *permanently*:
+ * an inline style makes an element's computed style unshareable, so 190 tiles
+ * with 190 distinct values means 190 full style computations on every recalc
+ * for the rest of the session, not just during the animation. Measured at
+ * 6.5ms per forced recalc against 2.3ms without — and a tokenizer switch forces
+ * several.
+ *
+ * So: twelve buckets carried on an attribute, which shares styles normally, and
+ * both the attribute and the flag are removed once the sequence has finished.
+ * After the first second the DOM is in exactly the state it would have been in
+ * with no animation at all.
+ */
+function revealTiles(columns: HTMLElement): void {
+  if (reduceMotion.matches) return;
+  const tiles = [...columns.querySelectorAll<HTMLElement>(".tile")];
+  if (tiles.length === 0) return;
+
+  const per = Math.ceil(tiles.length / WAVES);
+  for (const [i, tile] of tiles.entries()) {
+    tile.dataset.wave = String(Math.min(WAVES - 1, Math.floor(i / per)));
+  }
+  columns.dataset.reveal = "true";
+
+  window.setTimeout(() => {
+    delete columns.dataset.reveal;
+    for (const tile of tiles) delete tile.dataset.wave;
+  }, 1000);
 }
 
 /**
@@ -612,7 +633,7 @@ function buildReadout(
       <span><strong>Floor</strong> — the fewest tokens any of the
         ${data.languages.tokenizers.length} tokenizers here spends on this exact
         sentence. A stand-in for what the writing system genuinely needs.</span>
-      <span><strong>Above floor</strong> — everything on top of that. Vocabulary
+      <span><strong>Surcharge</strong> — everything on top of that. Vocabulary
         that could have been allocated to this language and was not.</span>
     </p>
     ${contrast}`;
