@@ -18,9 +18,16 @@ type Listener = (state: AppState, changed: Set<keyof AppState>) => void;
 
 const state: AppState = {
   tokenizer: "o200k",
-  // French for "even close relatives pay", Japanese for a genuine floor,
-  // Telugu and Burmese for what neglect looks like further out.
-  heroLanguages: ["eng_Latn", "fra_Latn", "jpn_Jpan", "tel_Telu", "mya_Mymr"],
+  // French for "even close relatives pay", Japanese for a genuine floor, Telugu
+  // for what neglect looks like further out.
+  //
+  // Four, not five. Five columns did not fit the field at any common desktop
+  // width, so the specimen — the first thing on the page and the whole argument
+  // — opened behind a horizontal scrollbar with its fifth column cut off. Four
+  // fit, and each one is about 70px wider for it. Burmese went because it was
+  // the last, and because Japanese already carries the same point: a language
+  // well above parity that is sitting exactly at its floor.
+  heroLanguages: ["eng_Latn", "fra_Latn", "jpn_Jpan", "tel_Telu"],
   corpus: "flores",
   freeText: "",
   sampleIndex: 0,

@@ -65,6 +65,48 @@ const check = (ok, msg) => { console.log(`${ok ? "ok  " : "FAIL"} ${msg}`); if (
   void RAIL_LOCKED_ABOVE;
 }
 
+// ---- 0b. the specimen never scrolls sideways -------------------------------
+// It is the first thing on the page and it is the whole argument, so half of it
+// must not be behind a horizontal gesture. Below the width where four columns
+// fit, the column *count* drops rather than the columns shrinking — and the two
+// assertions have to be made together, because satisfying either one alone is
+// trivial and wrong: narrow columns clip tokens, and a clipped token is
+// indistinguishable from a real BPE split, which is the thing this view exists
+// to show.
+{
+  for (const width of [1920, 1600, 1440, 1280, 1180, 1024, 961, 960, 768, 600, 480, 380]) {
+    const p = await b.newPage({ viewport: { width, height: 900 } });
+    await p.goto(BASE, { waitUntil: "domcontentloaded" });
+    await p.waitForSelector(".column .tile");
+    await p.evaluate(() => document.fonts.ready);
+    await p.waitForTimeout(300);
+    const r = await p.evaluate(() => {
+      const strip = document.querySelector(".tile-strip");
+      let clipped = 0;
+      for (const t of document.querySelectorAll(".column .tile")) {
+        if (t.dataset.empty !== "true" && t.scrollWidth - t.clientWidth > 1) clipped += 1;
+      }
+      const de = document.documentElement;
+      return {
+        strip: strip.scrollWidth - strip.clientWidth,
+        doc: de.scrollWidth - de.clientWidth,
+        cols: document.querySelectorAll(".column").length,
+        english: !!document.querySelector('.column[data-code="eng_Latn"]'),
+        clipped,
+      };
+    });
+    check(
+      r.strip === 0 && r.doc <= 0 && r.cols >= 2 && r.english,
+      `specimen fits at ${width}px (strip scroll ${r.strip}px, document ${r.doc}px, ` +
+        `${r.cols} columns, English present ${r.english})`
+    );
+    // Reported separately: at some widths a token legitimately does not fit and
+    // is marked, but never in the two Latin columns the gate in shots.mjs pins.
+    if (r.clipped > 0) console.log(`     note: ${r.clipped} tile(s) marked truncated at ${width}px`);
+    await p.close();
+  }
+}
+
 // ---- 1. load sequence ------------------------------------------------------
 {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });

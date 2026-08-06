@@ -82,6 +82,13 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     });
   });
 
+  // Declared above the first render(), not below it: render() reads `strip`
+  // through columnsThatFit(), and a `const` read inside a hoisted function
+  // still throws if the call site precedes the declaration.
+  const strip = root.querySelector<HTMLElement>(".tile-strip")!;
+  /** How many columns the last render actually drew. */
+  let shownCount = 0;
+
   render();
 
   // The tile field reflows twice on a cold load: once with fallback metrics and
@@ -90,12 +97,17 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
     markTruncatedTiles(columnsEl);
     positionParityLine();
   });
+  // Watches the strip, not the column grid: the grid's width is a *result* of
+  // how many columns were drawn, so observing it and then changing that count
+  // is a feedback loop. The strip is sized by the layout and does not move when
+  // the count changes. Re-rendering only on an actual change in the count keeps
+  // a resize drag from re-tiling on every frame.
   new ResizeObserver(() => {
+    if (columnsThatFit() !== shownCount) render();
     positionParityLine();
     updateScrollAffordance();
-  }).observe(columnsEl);
+  }).observe(strip);
 
-  const strip = root.querySelector<HTMLElement>(".tile-strip")!;
   strip.addEventListener("scroll", updateScrollAffordance, { passive: true });
   updateScrollAffordance();
 
@@ -126,6 +138,30 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
 
   // ------------------------------------------------------------------ render
 
+  /**
+   * How many language columns the strip can show whole.
+   *
+   * Four fit a desktop and two fit a phone, and the honest response to that is
+   * to show fewer rather than to shrink them: at 380px, four columns come out
+   * 78px wide, which is one tile cell too narrow for a whole English token and
+   * therefore counterfeits a BPE split — the one thing this view exists not to
+   * do. Scrolling the strip sideways instead would keep the columns legible and
+   * hide half of them behind a gesture on the first screen of the page.
+   *
+   * Never fewer than two, because one column compares nothing. English is
+   * always among them: it is index 0 and it is the pivot every ratio uses.
+   */
+  function columnsThatFit(): number {
+    const cs = getComputedStyle(strip);
+    const inner =
+      strip.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const grid = getComputedStyle(columnsEl);
+    const min = parseFloat(grid.getPropertyValue("--col-min")) || 164;
+    const gap = parseFloat(grid.columnGap) || 12;
+    const fit = Math.floor((inner + gap) / (min + gap));
+    return Math.max(2, Math.min(getState().heroLanguages.length, fit));
+  }
+
   function render(): void {
     const state = getState();
     const sentence = data.samples.sentences[state.sampleIndex];
@@ -133,16 +169,24 @@ export function mountComparator(root: HTMLElement, data: Dataset): void {
 
     columnsEl.querySelectorAll(".column").forEach((el) => el.remove());
 
-    const englishCount = sentence.tokens["eng_Latn"]?.[state.tokenizer]?.length ?? 0;
-    columnsEl.style.gridTemplateColumns =
-      `repeat(${state.heroLanguages.length}, minmax(224px, 1fr))`;
+    const codes = state.heroLanguages.slice(0, columnsThatFit());
+    shownCount = codes.length;
 
-    for (const [slot, code] of state.heroLanguages.entries()) {
+    const englishCount = sentence.tokens["eng_Latn"]?.[state.tokenizer]?.length ?? 0;
+    // The floor is in CSS, not here, because it is a typographic constraint —
+    // the narrowest a column can be and still fit a whole English token in a
+    // cell — and it changes with the tile grid, which is now adaptive.
+    columnsEl.style.gridTemplateColumns =
+      `repeat(${codes.length}, minmax(var(--col-min), 1fr))`;
+
+    for (const [slot, code] of codes.entries()) {
       columnsEl.append(buildColumn(slot, code, sentence, englishCount, options, data));
     }
 
     posEl.textContent = `Sentence ${state.sampleIndex + 1} of ${data.samples.sentences.length}`;
-    noteEl.innerHTML = buildReadout(sentence, state.tokenizer, state.heroLanguages, data);
+    // The visible codes, not all of them: the readout says "on screen right
+    // now", and on a phone that is two columns rather than four.
+    noteEl.innerHTML = buildReadout(sentence, state.tokenizer, codes, data);
 
     // The one load sequence. Tiles arrive in reading order — down the first
     // column, then the second — rather than all at once, so the specimen builds

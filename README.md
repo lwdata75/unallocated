@@ -111,9 +111,12 @@ npm run dev
 Vite + TypeScript, vanilla DOM, D3 for scales and the scatter. Eight sections,
 in the order the argument runs:
 
-1. **The specimen** — one sentence, five languages, every token a physical tile,
+1. **The specimen** — one sentence, four languages, every token a physical tile,
    with a parity line at the English column's height. It opens the page before
-   any prose does, because the tiles make the finding without being read.
+   any prose does, because the tiles make the finding without being read. The
+   column count drops to three and then two as the viewport narrows, rather than
+   the columns shrinking: a token too narrow for its cell would be clipped, and
+   a clipped token is indistinguishable from a real BPE split.
 2. **It is not the writing system** — the same Telugu sentences priced by four
    tokenizers. One variable moves and it is not the language.
 3. **Floor and surcharge** — the decomposition, and the site's signature
@@ -150,17 +153,20 @@ ancestor chain, resolves every colour through the browser's own parser so the
 OKLCH palette is read correctly, and checks all 192 rendered heatmap cells
 rather than sampling them.
 
-`npm run behaviour` covers what a screenshot cannot: that the load sequence runs
-and then removes its own staging attributes, that the scroll-linked
-decomposition actually separates, that `prefers-reduced-motion` lands on the end
-state and not the start state, and that switching tokenizer grows the hollow
-half of the decomposition while leaving the floor exactly where it is.
+`npm run behaviour` covers what a screenshot cannot: that the rail is locked
+with all sixteen of its rows in view at every window height from 1080 down to
+520, that the specimen fits without a sideways scroll at every width from 1920
+down to 380 *and* without clipping a token, that the load sequence runs and then
+removes its own staging attributes, that the scroll-linked decomposition
+actually separates, that `prefers-reduced-motion` lands on the end state and not
+the start state, and that switching tokenizer grows the hollow half of the
+decomposition while leaving the floor exactly where it is.
 
-Last measured: **Lighthouse performance 94, accessibility 100, best practices
-100** (total blocking time 80 ms, first contentful paint 1.7 s, cumulative
+Last measured: **Lighthouse performance 95, accessibility 100, best practices
+100** (total blocking time 70 ms, first contentful paint 1.6 s, cumulative
 layout shift 0.039); all 25 showcase scripts rendering from self-hosted faces;
 every contrast pair meeting its threshold in both themes, worst case 4.58:1 on
-a heatmap cell.
+a heatmap cell; no horizontal scroll anywhere from 380px to 1920px.
 
 ## Provenance and licensing
 

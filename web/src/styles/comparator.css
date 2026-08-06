@@ -25,14 +25,31 @@
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
   /* Reserved, so the heading below paints in its final position on the first
-     frame instead of jumping down when the tiles arrive. Measured at 692px on
-     the default five languages and tokenizer, and it is 692px at every viewport
-     from 380 to 1920 because this strip scrolls sideways rather than reflowing.
-     A taller tokenizer grows it from here, which pushes content down once — the
-     same shift the tile animation already causes and small enough to leave
-     cumulative layout shift at 0.02. */
-  min-height: 692px;
+     frame instead of jumping down when the tiles arrive — it is the page's
+     largest-contentful paint and it is static markup precisely so it can paint
+     before the data lands.
+
+     Banded, because the strip's natural height is not one number: the tile grid
+     inside each column is adaptive, so a wide viewport packs the same tokens
+     into five cells per row and a narrow one into two, and the strip measures
+     anywhere from 428px to 729px. A single reserve either left 110px of dead
+     space under the columns at 1440 or let them jump 170px at 1024.
+
+     These four values are measured, not guessed, and each is the ceiling of its
+     band rather than its middle, so the residual is dead space rather than
+     movement wherever that choice is available. Residuals: under 12px across
+     most of the range, 52px of dead space at 1920, 29px of downward movement at
+     1024 and 768, and one bad case — 156px of dead space at exactly 560px wide,
+     where the language-column count drops but this band does not. That width
+     sits between phone and tablet sizes and is not worth a fifth band.
+     Re-measure `.columns` height across widths if the default languages, the
+     tile size or the column minimum ever change. */
+  min-height: 700px;
 }
+
+@media (min-width: 1250px) { .tile-strip { min-height: 570px; } }
+@media (min-width: 1550px) { .tile-strip { min-height: 480px; } }
+@media (max-width: 560px) { .tile-strip { min-height: 650px; } }
 
 .tile-strip[data-scrollable="true"] {
   mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
@@ -46,10 +63,13 @@
 .columns {
   position: relative;
   display: grid;
-  /* Track count is set from JS to the number of hero columns. minmax(224px,1fr)
-     keeps every column at least wide enough for a whole English word and shares
-     any surplus; below that total the strip scrolls rather than the cell
-     shrinking. */
+  /* Track count is set from JS to the number of hero columns; the floor is
+     here. 164px is two tile cells plus the gaps and padding around them, so a
+     column can always show whole tokens even at its narrowest. Below that total
+     the strip does scroll rather than the cell shrinking — but with four
+     columns that only happens under about 700px of field, which is narrower
+     than the layout ever gets before the rail becomes a header. */
+  --col-min: 164px;
   grid-template-rows: auto auto auto;
   gap: var(--s-3);
   min-width: min-content;
@@ -91,10 +111,10 @@
 }
 
 /* Never narrows past the width at which an 11-character token — the longest in
-   the English and French sample sentences — still fits whole in a three-column
-   grid. A token clipped by its cell would be indistinguishable from a genuine
-   BPE split, which is the one thing this view exists to show, so below that
-   width the strip scrolls rather than the cell shrinking. */
+   the English and French sample sentences — still fits whole in a cell. A token
+   clipped by its cell would be indistinguishable from a genuine BPE split,
+   which is the one thing this view exists to show. Below that width the *count*
+   of columns drops rather than the cell shrinking; see columnsThatFit(). */
 .column {
   display: grid;
   grid-row: 1 / -1;
@@ -108,7 +128,20 @@
 .column .tiles { align-self: start; }
 .column .column-stats-block { align-self: end; }
 
-.column-head { display: flex; flex-direction: column; gap: var(--s-1); min-height: 68px; }
+/* min-width:0 is load-bearing. The head is a grid item, so its automatic
+   minimum size is its content's min-content — and one of its children is a
+   <select> whose min-content is its longest option, "Chinese (Traditional)".
+   That pushed every column 25px past its own track and put the specimen behind
+   a horizontal scrollbar at any width under 1280px. The `min-width: 0` already
+   on .lang-select cannot help: it lets the select shrink, but the head still
+   reports the select's min-content as its own. */
+.column-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+  min-height: 68px;
+}
 
 .column-lang {
   display: flex;
@@ -234,7 +267,19 @@
    enough for a whole word: a clipped token would counterfeit a BPE split. */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Adaptive, not a fixed three.
+     Rows are ceil(tokens / columns), so height tracks cost only if every
+     language column resolves to the *same* number of cells — which auto-fill
+     guarantees here, because the language columns are 1fr tracks and therefore
+     all the same width. What it buys is the ability to drop to two cells on a
+     narrow viewport instead of forcing the whole strip to scroll sideways: the
+     column can then be 164px rather than 224px and still fit a whole token,
+     because the cell got wider, not narrower.
+     72px is the floor: an 11-character token — the longest in the English and
+     French sample sentences — measures about 63px at this size, and a clipped
+     token would be indistinguishable from a real BPE split, which is the one
+     thing this view exists to show. */
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   align-content: flex-start;
   gap: 2px;               /* the seam */
   padding: var(--s-1);
@@ -446,5 +491,6 @@
 }
 @media (max-width: 420px) {
   .tile-strip { margin-left: calc(-1 * var(--s-3)); padding-left: var(--s-3); padding-right: var(--s-3); }
-  .column { width: 210px; }
+  /* The column count adapts instead (see columnsThatFit in comparator.ts), so
+     a fixed width here would fight it and reintroduce the sideways scroll. */
 }
