@@ -27,6 +27,44 @@ const b = await chromium.launch({ executablePath: CHROME });
 const fails = [];
 const check = (ok, msg) => { console.log(`${ok ? "ok  " : "FAIL"} ${msg}`); if (!ok) fails.push(msg); };
 
+// ---- 0. the rail is locked -------------------------------------------------
+// It carries the map of the study and the tokenizer selector, and neither may
+// be behind a second scroll position. Checked across the range of window
+// heights a laptop actually produces, because the failure is invisible at the
+// height you happen to be developing at: the natural content is 774px, so a
+// 900px window looks perfect while a 720px one hides the theme button and the
+// last tokenizer. 520px is the floor below which the rows genuinely cannot fit
+// and the rail is allowed to scroll rather than clip a section link.
+{
+  const RAIL_LOCKED_ABOVE = 520;
+  for (const height of [1080, 900, 800, 720, 690, 640, 560, 520]) {
+    const p = await b.newPage({ viewport: { width: 1440, height } });
+    await p.goto(BASE, { waitUntil: "domcontentloaded" });
+    await p.waitForSelector(".tok-btn");
+    await p.evaluate(() => document.fonts.ready);
+    await p.waitForTimeout(200);
+    const r = await p.evaluate(() => {
+      const rail = document.querySelector(".rail");
+      const cs = getComputedStyle(rail);
+      const floor = rail.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom);
+      let worst = 0;
+      for (const el of rail.querySelectorAll(".nav-list a, .tok-btn, .theme-btn, .masthead h1")) {
+        worst = Math.max(worst, Math.round(el.getBoundingClientRect().bottom - floor));
+      }
+      return { rolls: rail.scrollHeight - rail.clientHeight, worst,
+               links: rail.querySelectorAll(".nav-list a").length,
+               toks: rail.querySelectorAll(".tok-btn").length };
+    });
+    check(
+      r.rolls === 0 && r.worst <= 0 && r.links === 8 && r.toks === 8,
+      `rail is locked at ${height}px tall (rolls ${r.rolls}px, overhang ${r.worst}px, ` +
+        `${r.links} links and ${r.toks} tokenizers all in view)`
+    );
+    await p.close();
+  }
+  void RAIL_LOCKED_ABOVE;
+}
+
 // ---- 1. load sequence ------------------------------------------------------
 {
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });

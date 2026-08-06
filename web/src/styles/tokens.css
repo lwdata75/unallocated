@@ -115,6 +115,10 @@
   --s-8: 72px;
 
   --rail-w: 240px;
+  /* Overridden by the height queries in app.css, which is how the rail stays
+     locked with nothing rolling off the bottom of it. */
+  --rail-gap: var(--s-5);
+  --rail-pad: var(--s-5);
 
   /* One radius scale, and the small one is exactly half the large one so a
      nested corner never reads as a mistake. */

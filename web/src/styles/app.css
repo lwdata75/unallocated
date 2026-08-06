@@ -90,6 +90,17 @@ a {
    Fixed, and deliberately outside every scrolling container: the tile strip
    scrolls sideways on its own, and if the document scrolled instead the rail
    would be dragged off the left edge with it. */
+/* Locked. The rail holds the whole map of the study and the control that
+   changes what it shows, and both have to be there without a second scroll:
+   a sidebar that scrolls inside a page that also scrolls gives a reader two
+   scroll positions to keep track of, and the tokenizer list — the most
+   persuasive control on the site — was the half that rolled off the bottom.
+
+   So the contents are made to fit instead. `--rail-gap` and `--rail-pad` and
+   the height queries further down tighten the rail as the viewport shortens,
+   dropping the two supplementary lines first and the spacing after. Below
+   560px tall even the compact layout cannot fit, and there it scrolls rather
+   than clipping navigation — a hidden section link is worse than a scrollbar. */
 .rail {
   position: fixed;
   inset: 0 auto 0 0;
@@ -97,9 +108,9 @@ a {
   z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: var(--s-5);
-  padding: var(--s-5) var(--s-4);
-  overflow-y: auto;
+  gap: var(--rail-gap);
+  padding: var(--rail-pad) var(--s-4);
+  overflow: hidden;
   color: var(--text-muted);
   font-size: var(--t-13);
   background: var(--rail-surface);
@@ -234,8 +245,12 @@ a {
 }
 .nav-list a:hover { background: var(--sunk-strong); color: var(--text); text-decoration: underline; }
 
+/* Pinned to the bottom of the rail rather than trailing the tokenizer list, so
+   the space the height queries free up collects in one place instead of opening
+   a gap in the middle of the controls. */
 .theme-btn {
   align-self: flex-start;
+  margin-top: auto;
   padding: var(--s-1) var(--s-3);
   font-family: var(--label);
   font-size: var(--t-11);
@@ -354,6 +369,39 @@ a {
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
   padding: var(--s-4);
+}
+
+/* ------------------------------------------------- keeping the rail locked
+
+   Three steps, ordered by what a reader loses least. First the two lines that
+   restate something the page already says: the tokenizer note, which repeats
+   the family's description, and the strapline, which the cold open states in
+   full a screen below. Then the spacing. The eight section links and the eight
+   tokenizers are never touched, because they are the rail.
+
+   Natural height is 774px, so without this a 720px window scrolled the rail by
+   54px — which is exactly enough to hide the theme button and the last
+   tokenizer and not enough to look deliberate. */
+
+@media (max-height: 820px) {
+  :root { --rail-gap: var(--s-4); --rail-pad: var(--s-4); }
+  .rail-hint { display: none; }
+  .tok-btn { padding: 5px var(--s-3); }
+  .nav-list a { padding: 2px var(--s-3); }
+}
+
+@media (max-height: 690px) {
+  :root { --rail-gap: var(--s-3); }
+  .masthead p { display: none; }
+  .tok-btn { padding: 3px var(--s-3); }
+  .nav-list a { padding: 1px var(--s-3); font-size: var(--t-13); }
+  .rail-group { gap: var(--s-1); }
+}
+
+/* Past here the sixteen rows themselves no longer fit and the only options are
+   a scrollbar or a hidden section link. A scrollbar is the better of those. */
+@media (max-height: 560px) {
+  .rail { overflow-y: auto; }
 }
 
 /* Below 960px the rail stops being a rail and becomes a header — and a header
